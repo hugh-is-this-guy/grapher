@@ -1,0 +1,23 @@
+{
+  "name": "grapher",
+  "version": "0.0.0",
+  "description": "Graph analytics and visualisation app",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hughbrace/grapher.git"
+  },
+  "author": "hugh-brace",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hughbrace/grapher/issues"
+  },
+  "homepage": "https://github.com/hughbrace/grapher",
+  "dependencies": {
+    "logfmt": "~0.20.0",
+    "express": "~3.4.8"
+  }
+}
