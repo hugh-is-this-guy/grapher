@@ -1,24 +1,15 @@
 {
-  "name": "grapher",
-  "description": "Graph analytics and visualisation app",
-  "version": "0.0.0",
-  "main": "app.js",
+  "name": "application-name",
+  "version": "0.0.1",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "coffee app.coffee"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/hughbrace/grapher.git"
-  },
-  "author": "hugh-brace",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/hughbrace/grapher/issues"
-  },
-  "homepage": "https://github.com/hughbrace/grapher",
   "dependencies": {
-    "logfmt": "~0.20.0",
-    "express": "~3.4.8",
-    "neo4j": "1.1.0"
+    "express": "3.4.8",
+    "jade": "*",
+    "stylus": "*",
+    "coffee-script": "~1.7.1",
+    "neo4j": "~1.1.0"
   }
 }
