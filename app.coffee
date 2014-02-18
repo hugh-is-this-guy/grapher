@@ -5,10 +5,12 @@ routes = require("./routes")
 user = require("./routes/user")
 http = require("http")
 path = require("path")
-neo4f = require("neo4j")
+neo4j = require("neo4j")
 
 app = express()
 port = process.env.PORT or 3000
+db = new neo4j.GraphDatabase process.env.GRAPHENEDB_URL or "http://localhost:7474"
+
 
 # all environments
 app.set "views", path.join(__dirname, "views")
@@ -28,4 +30,5 @@ app.get "/", routes.index
 app.get "/users", user.list
 
 app.listen port, ->
-  console.log "Listening on port" + port
+  console.log "Listening on port " + port
+  console.log db.url
