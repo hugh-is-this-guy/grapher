@@ -9,7 +9,7 @@
 8 verbose unsafe-perm in lifecycle true
 9 info application-name@0.0.1 Failed to exec start script
 10 error application-name@0.0.1 start: `coffee app.coffee`
-10 error Exit status 8
+10 error Exit status 1
 11 error Failed at the application-name@0.0.1 start script.
 11 error This is most likely a problem with the application-name package,
 11 error not with npm itself.

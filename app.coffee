@@ -1,14 +1,13 @@
 # Module dependencies.
-express 	= require("express")
-routes 		= require("./routes")
-user 		= require("./routes/user")
-nodes		= require("./routes/nodes")
-path 		= require("path")
-neo4j 		= require("neo4j")
+express     = require("express")
+path        = require("path")
+neo4j       = require("neo4j")
+routes      = require("./routes")
+nodes       = require("./routes/nodes")
 
-app 	= express()
-port 	= process.env.PORT or 3000
-db 		= new neo4j.GraphDatabase process.env.GRAPHENEDB_URL or "http://localhost:7474"
+app     = express()
+port    = process.env.PORT or 3000
+db      = new neo4j.GraphDatabase process.env.GRAPHENEDB_URL or "http://localhost:7474"
 
 
 # all environments
@@ -27,7 +26,6 @@ app.use express.static(path.join(__dirname, "public"))
 #app.use express.errorHandler()  if "development" is app.get("env")
 
 app.get "/", routes.index
-app.get "/users", user.list
 app.get "/nodes", nodes.list
 
 
