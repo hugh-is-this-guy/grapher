@@ -10,6 +10,7 @@
     "jade": "*",
     "stylus": "*",
     "coffee-script": "~1.7.1",
-    "neo4j": "~1.1.0"
+    "neo4j": "~1.1.0",
+    "superagent": "~0.16.0"
   }
 }
