@@ -9,7 +9,7 @@ exports.list = function(req, res) {
 	request.post(dbURL + '/cypher').send({
 		query: 'MATCH (n) RETURN n;'
 	}).end(function(neo4jRes) {
-		console.log(neo4jRes.text);
+		console.log(neo4jRes);
 		res.send(neo4jRes.text);
 	});
 };
