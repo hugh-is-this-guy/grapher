@@ -3,11 +3,20 @@
 #
 request = require("superagent")
 
-dbURL = dbURL = process.env.GRAPHENEDB_URL or "http://localhost:7474"
+dbURL = process.env.GRAPHENEDB_URL or "http://localhost:7474"
+dbURL += "/db/data/cypher"
 
-exports.list = (req, res) ->
-  request.post(dbURL + "/db/data/cypher").send(query: "MATCH (n) RETURN n;").end (neo4jRes) ->
+exports.findAll = (req, res) ->
+  request.post(dbURL).send(
+    query: "MATCH (n) RETURN n;"
+  ).end (neo4jRes) ->
     res.send neo4jRes.text
-    return
 
-  return
+exports.findByName = (req, res) ->
+  request.post(dbURL).send(
+    query: "MATCH (node {name: {name}}) RETURN node;",
+    params:
+      name: req.params.name
+  ).end (neo4jRes) ->
+    res.send neo4jRes.text
+#  res.send name:req.params.name

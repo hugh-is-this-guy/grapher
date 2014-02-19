@@ -19,7 +19,8 @@ app.use require("stylus").middleware(path.join(__dirname, "public"))
 app.use express.static(path.join(__dirname, "public"))
 
 app.get "/", routes.index
-app.get "/nodes", nodes.list
+app.get "/nodes", nodes.findAll
+app.get "/nodes/:name", nodes.findByName
 
 
 app.listen port, ->
