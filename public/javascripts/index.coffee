@@ -1,3 +1,4 @@
+#Sets up animations to transition between page sections
 do $('div#about').hide
 
 $('a#graph').click( ->
@@ -12,3 +13,4 @@ $('a#about').click( ->
   )
 )
 
+#AJAX search for nodes by name and populate search results element.

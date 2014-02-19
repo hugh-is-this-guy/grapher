@@ -20,7 +20,8 @@ app.use express.static(path.join(__dirname, "public"))
 
 app.get "/", routes.index
 app.get "/nodes", nodes.findAll
-app.get "/nodes/:name", nodes.findByName
+app.get "/nodes/name/:name", nodes.findByName
+app.get "/nodes/:id", nodes.findById
 
 
 app.listen port, ->

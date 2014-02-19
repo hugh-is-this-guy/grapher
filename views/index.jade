@@ -5,21 +5,23 @@ block content
     h1= title
     .row
       .col-md-1
-        a(id='about' class='nav' href='#') About
+        a(id='about' class='nav' href='#!') About
       .col-md-1
-        a(id='graph' class='nav' href='#') Graph
+        a(id='graph' class='nav' href='#!') Graph
 
   #content
     #graph
       h2 Graph
       .row
-        .col-md-3
+        .col-md-2
           h3 Search
           input(type="search" name='name-search' id='name-search')
+          #results
+            ul
 
-        #svg.col-md-6
+        #svg.col-md-8
 
-        .col-md-3
+        .col-md-2
           h3 Selections
 
 
