@@ -1,5 +1,28 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  #header
+    h1= title
+    .row
+      .col-md-1
+        a(id='about' class='nav' href='#') About
+      .col-md-1
+        a(id='graph' class='nav' href='#') Graph
+
+  #content
+    #graph
+      h2 Graph
+      .row
+        .col-md-3
+          h3 Search
+          input(type="search" name='name-search' id='name-search')
+
+        #svg.col-md-6
+
+        .col-md-3
+          h3 Selections
+
+
+    #about
+      h2 About
+  

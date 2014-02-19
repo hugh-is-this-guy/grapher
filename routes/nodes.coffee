@@ -18,5 +18,6 @@ exports.findByName = (req, res) ->
     params:
       name: req.params.name
   ).end (neo4jRes) ->
-    res.send neo4jRes.text
+    nodes = neo4jRes.text
+    res.json neo4jRes.text
 #  res.send name:req.params.name

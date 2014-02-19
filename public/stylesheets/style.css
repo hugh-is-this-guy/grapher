@@ -1,7 +1,11 @@
 body {
   padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
-a {
+  font: 14px "Lucida Grande" Helvetica Arial sans-serif;
   color: #00b7ff;
+}
+hidden {
+  display: none;
+}
+#name-search {
+  width: 100%;
 }
