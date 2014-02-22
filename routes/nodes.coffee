@@ -7,13 +7,12 @@ dbURL = process.env.GRAPHENEDB_URL or "http://localhost:7474"
 dbURL += "/db/data"
 
 exports.findAll = (req, res) ->
-  request.post(dbURL + "cypher").send(
+  request.post(dbURL + "/cypher").send(
     query: "MATCH (n) RETURN n;"
   ).end (neo4jRes) ->
     res.send neo4jRes.text
 
 exports.findByName = (req, res) ->
-  dbURL += '/cypher'
   request.post(dbURL + "/cypher").send(
     query: "MATCH (n {name: {name}}) RETURN n;",
     params:
