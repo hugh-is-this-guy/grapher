@@ -20,3 +20,14 @@ end
 
 puts names
 puts names.length
+
+for i in 1..1899 do
+  puts "CREATE (n:Person {name: '#{names[i]}'})"  
+end
+
+process_lines("relationships") { |line, count| 
+  from, to, weight = line.split
+  puts "MATCH (a:Person), (b:Person)
+  WHERE a.name = '#{names[Integer(from)]}' AND b.name = '#{names[Integer(to)]}'
+  CREATE (a) -[r:Knows{weight: #{weight}}]->(b)"
+}
