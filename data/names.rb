@@ -14,7 +14,7 @@ process_lines("forenames") { |line, count| 14.times { |i| names.push line }}
 
 process_lines("surnames")  do |line, count| 
   14.times do |i|
-    names[(150 * i ) + count] += " #{line}" 
+    names[(150 * i ) + count] += "#{line}" 
   end
 end
 
@@ -22,12 +22,14 @@ puts names
 puts names.length
 
 for i in 1..1899 do
-  puts "CREATE (n:Person {name: '#{names[i]}'})"  
+  puts "CREATE (#{names[i]}:Person {name: '#{names[i]}'})"
 end
 
 process_lines("relationships") { |line, count| 
   from, to, weight = line.split
-  puts "MATCH (a:Person), (b:Person)
-  WHERE a.name = '#{names[Integer(from)]}' AND b.name = '#{names[Integer(to)]}'
-  CREATE (a) -[r:Knows{weight: #{weight}}]->(b)"
+  from = names[Integer(from)]
+  to = names[Integer(to)]
+  puts "MATCH (#{from}:Person), (#{to}:Person)
+  WHERE #{from}.name = '#{from}' AND #{to}.name = '#{to}'
+  CREATE (#{from}) -[r:Knows{weight: #{weight}}]->(#{to})"
 }
