@@ -37,6 +37,7 @@ File.open("query.cypher", 'w') do |output|
     output.puts "CREATE (#{ids[i]}:Person {name: '#{names[i]}'})"
   end
 
+  output.puts "CREATE"
   process_lines("relationships") do |line, count| 
     from, to, weight  = line.split
     from_id           = ids[Integer(from)]
@@ -44,9 +45,7 @@ File.open("query.cypher", 'w') do |output|
     from_name         = names[Integer(from)]
     to_name           = names[Integer(to)]
     
-    output.puts "MATCH (#{from_id}:Person), (#{to_id}:Person)
-    WHERE #{from_id}.name = '#{from_name}' AND #{to_id}.name = '#{to_name}'
-    CREATE (#{from_id}) - [r:Knows{weight: #{weight}}] -> (#{to_id})"
+    output.puts "  (#{from_id})-[r:Knows{weight: #{weight}}]->(#{to_id}),"
   end
 
 end
