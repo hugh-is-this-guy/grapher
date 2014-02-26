@@ -6,7 +6,7 @@ routes      = require("./routes")
 nodes       = require("./routes/nodes")
 
 app     = express()
-port    = process.env.PORT or 3000
+port    = process.env.PORT or 3001
 db      = new neo4j.GraphDatabase process.env.GRAPHENEDB_URL or "http://localhost:7474"
 
 
