@@ -34,7 +34,7 @@ end
 
 File.open("query.cypher", 'w') do |output|
   for i in 1..1899 do
-    output.puts "CREATE (#{ids[i]}:Person {name: '#{names[i]}'})"
+    output.puts "CREATE (#{ids[i]}:Person {id: #{i}, name: '#{names[i]}'})"
   end
 
   output.puts "CREATE"
@@ -45,8 +45,9 @@ File.open("query.cypher", 'w') do |output|
     from_name         = names[Integer(from)]
     to_name           = names[Integer(to)]
     
-    output.puts "  (#{from_id})-[r:Knows{weight: #{weight}}]->(#{to_id}),"
+    output.puts "  (#{from_id})-[:KNOWS{weight: #{weight}}]->(#{to_id}),"
   end
+  #output.puts "RETURN #{ids[0]};"
 
 end
 
