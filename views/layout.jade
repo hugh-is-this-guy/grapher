@@ -3,7 +3,8 @@ html
   head
     title= title
 
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    //link(rel='stylesheet', href='/stylesheets/style.css')
+    != css('style')
     link(rel='stylesheet', href='/stylesheets/bootstrap.css')
 
     script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js')
@@ -13,5 +14,5 @@ html
 
   body
     block content
-    script(src='javascripts/index.js')
-    script(src='javascripts/index-d3.js')
+    != js('index')
+    != js('index-d3')

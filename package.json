@@ -11,6 +11,7 @@
     "stylus": "*",
     "coffee-script": "~1.7.1",
     "neo4j": "~1.1.0",
-    "superagent": "~0.16.0"
+    "superagent": "~0.16.0",
+    "connect-assets": "~2.2.1"
   }
 }
