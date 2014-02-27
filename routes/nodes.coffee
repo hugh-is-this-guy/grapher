@@ -18,7 +18,9 @@ queryDatabase = (q, callback) ->
     )
 
     response = {
-      meta:   people.length,
+      meta: {
+        number_of_people: people.length
+      }
       people: people 
     }
 

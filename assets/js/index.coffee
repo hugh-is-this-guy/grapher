@@ -32,17 +32,26 @@ jQuery ->
 
     addResults = (data) ->
       addResult = (id, name) ->
-        $('#results ul').append (
+        $('#results ul').append(
           $(document.createElement 'li')
           .append($(document.createElement 'a')
             .attr 'href', '#!'
             .html name
             .click () ->
               addToGraph id, name
+            .prepend($(document.createElement 'span')
+              .attr('class', 'glyphicon glyphicon-user')
+            )
           )
         )
       
-      addResult person.id, person.name for person in data.people
+      if data.meta.number_of_people == 0
+        $('#results ul').append(
+          $(document.createElement 'li')
+            .html 'No results'
+        )
+      else
+        addResult person.id, person.name for person in data.people
 
     $('#name-search').keyup ->
       search encodeURIComponent this.value
