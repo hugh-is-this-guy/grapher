@@ -19,6 +19,8 @@ end
 
 def post_to_db(query)
   uri = URI('http://localhost:7474/db/data/cypher')
+  #uri = URI('http://test:shfubSRbzFpeMIdSwoUn@test.sb01.stations.graphenedb.com:24789/db/data/cypher')
+
   res = Net::HTTP.post_form(uri, :query => query)
 end
 
