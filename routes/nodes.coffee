@@ -10,9 +10,6 @@ queryDatabase = (q, callback) ->
   ).end (neo4jRes) ->
     results = JSON.parse neo4jRes.text
 
-    console.log "text" + neo4jRes.text
-    console.log "parsed text" + results
-
     people = (
       {
         'id'  : result[0].data.id,
@@ -20,34 +17,30 @@ queryDatabase = (q, callback) ->
       } for result in results.data
     )
 
-    console.log "people:" +  people
-
-    response = {  
+    response = {
       meta:   people.length,
       people: people 
     }
 
-    console.log "my JSON" + JSON.stringify response
-
     callback response
 
 exports.findAll = (req, res) ->
+  console.log 'All nodes requested.'
   query = "MATCH (n) RETURN n;"
   queryDatabase query, (response) ->
-    console.log response
     res.json response
 
 exports.findByName = (req, res) ->
-  query = "MATCH (n) WHERE n.name =~ '(?i).*" + req.params.name + ".*' RETURN n;"
+  name = req.params.name
+  console.log "Search for name: #{name}"
+  query = "MATCH (n) WHERE n.name =~ '(?i).*#{name}.*' RETURN n;"
   queryDatabase query, (response) ->
-    console.log response
-    console.log 'HELLO'
     res.json response
 
 exports.findById = (req, res) ->
+  console.log "Search for id: #{req.params.id}"
   query = "MATCH (n) WHERE n.id = " + req.params.id + " RETURN n;"
   queryDatabase query, (response) ->
-    console.log response
     res.json response
 
 
