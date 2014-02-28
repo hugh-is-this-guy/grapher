@@ -21,8 +21,10 @@ jQuery ->
     search = (search_term) ->
       if @last_term != search_term
         clearResults()
+        #loading
         if search_term != ''
           $.get "/nodes/name/#{search_term}", (data) ->
+            clearResults()
             addResults(data)
         @last_term = search_term
 
