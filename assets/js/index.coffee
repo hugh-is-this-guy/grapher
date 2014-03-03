@@ -58,8 +58,6 @@ jQuery ->
     $('#name-search').keyup ->
       search encodeURIComponent this.value
 
-  addToGraph= (id, name) ->
-    alert id + ": " + name
 
   Searcher()
 
@@ -87,9 +85,8 @@ tick = () ->
 
 force = d3.layout.force()
   .size [width, height]
-  .nodes [{}]
   .linkDistance 30
-  .charge -60
+  .charge -100
   .on 'tick', tick
 
 nodes = force.nodes()
@@ -105,26 +102,20 @@ draw = () ->
 
   node.enter().insert('circle')
     .attr 'class', 'node'
-    .attr 'r', 5
+    .attr 'r', 15
     .call force.drag
 
   force.start()
-
-
-mousedown = () ->
-  point = d3.mouse this
-  n = {x: point[0], y: point[1]}
-  nodes.push n
-  draw()
 
 svg.append 'rect'
   .attr 'width', width
   .attr 'height', height
 
-svg.on 'mousedown', mousedown
-
 draw()
 
+addToGraph= (id, name) ->
+  nodes.push {id: id, name: name, x: 10, y: 400}
+  draw()
 
 
 
