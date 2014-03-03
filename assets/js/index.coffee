@@ -104,6 +104,9 @@ draw = () ->
     .attr 'class', 'node'
     .attr 'r', 15
     .call force.drag
+    .on 'click', (d) ->
+      if not d3.event.defaultPrevented # Ignore drag
+        alert d.id + ': ' + d.name
 
   force.start()
 
@@ -113,8 +116,14 @@ svg.append 'rect'
 
 draw()
 
+getX = ->
+  Math.random() * 800
+
+getY = ->
+  Math.random() * 500
+
 addToGraph= (id, name) ->
-  nodes.push {id: id, name: name, x: 10, y: 400}
+  nodes.push {id: id, name: name, x: getX(), y: getY()}
   draw()
 
 
