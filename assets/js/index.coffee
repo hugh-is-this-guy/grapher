@@ -28,7 +28,7 @@ jQuery ->
       @node.attr 'cy', (d) -> d.y
 
 
-    draw: ->
+    _draw: ->
       @link = @link.data @links
 
       @link.enter().insert 'line', '.node'
@@ -49,23 +49,25 @@ jQuery ->
       @force.start()
 
 
-    generateX: ->
+    _generateX: ->
       Math.random() * 800
 
-    generateY: ->
+    _generateY: ->
       Math.random() * 500
 
-    addToGraph: (id, name) ->
-      if not ((n for n in @nodes when n.name is name)[0])?
-        @nodes.push {id: id, name: name, x: @generateX(), y: @generateY()}
-        @draw()
+    addNode: (new_node) ->
+      if not ((n for n in @nodes when n.name is new_node.name)[0])?
+        new_node.x = @_generateX()
+        new_node.y = @_generateY()
+        @nodes.push new_node
+        @_draw()
 
     clearGraph: ->
-      @force.nodes([])
-      @force.links([])
+      @force.nodes []
+      @force.links []
       @nodes = @force.nodes()
       @links = @force.links()
-      @draw()
+      @_draw()
 
     init: ->
       @svg = d3.select '#svg'
@@ -122,7 +124,7 @@ jQuery ->
             .attr 'href', '#!'
             .html name
             .click () ->
-              Graph.addToGraph id, name
+              Graph.addNode new Node(id, name)
             .prepend($(document.createElement 'span')
               .attr('class', 'glyphicon glyphicon-user')
             )
@@ -144,6 +146,13 @@ jQuery ->
       clearGraph()
   
 
+
+
+
+
+
+  class Node
+    constructor: (@id, @name) ->
 
 
 
