@@ -28,20 +28,20 @@ queryDatabase = (q, callback) ->
 
 exports.findAll = (req, res) ->
   console.log 'All nodes requested.'
-  query = "MATCH (n) RETURN n;"
+  query = "MATCH (n) RETURN n ORDER BY n.name;"
   queryDatabase query, (response) ->
     res.json response
 
 exports.findByName = (req, res) ->
   name = req.params.name
   console.log "Search for name: #{name}"
-  query = "MATCH (n) WHERE n.name =~ '(?i).*#{name}.*' RETURN n;"
+  query = "MATCH (n) WHERE n.name =~ '(?i).*#{name}.*' RETURN n ORDER BY n.name;"
   queryDatabase query, (response) ->
     res.json response
 
 exports.findById = (req, res) ->
   console.log "Search for id: #{req.params.id}"
-  query = "MATCH (n) WHERE n.id = " + req.params.id + " RETURN n;"
+  query = "MATCH (n) WHERE n.id = " + req.params.id + " RETURN n ORDER BY n.name;"
   queryDatabase query, (response) ->
     res.json response
 

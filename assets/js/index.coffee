@@ -58,6 +58,9 @@ jQuery ->
     $('#name-search').keyup ->
       search encodeURIComponent this.value
 
+    $('#clear').click ->
+      clearGraph()
+
 
   Searcher()
 
@@ -86,7 +89,7 @@ tick = () ->
 force = d3.layout.force()
   .size [width, height]
   .linkDistance 30
-  .charge -100
+  .charge -150
   .on 'tick', tick
 
 nodes = force.nodes()
@@ -108,6 +111,8 @@ draw = () ->
       if not d3.event.defaultPrevented # Ignore drag
         alert d.id + ': ' + d.name
 
+  node.exit().remove()
+
   force.start()
 
 svg.append 'rect'
@@ -122,11 +127,16 @@ getX = ->
 getY = ->
   Math.random() * 500
 
-addToGraph= (id, name) ->
+addToGraph = (id, name) ->
   nodes.push {id: id, name: name, x: getX(), y: getY()}
   draw()
 
-
+clearGraph = () ->
+  force.nodes([])
+  force.links([])
+  nodes = force.nodes()
+  links = force.links()
+  draw()
 
 
 
