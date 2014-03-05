@@ -10,13 +10,10 @@ jQuery ->
     $('div#graph').fadeOut 'fast', ->
       $('div#about').fadeIn 'fast'
 
-  @name = 'Jquery'
-
-  Graph =
-    width:  800
-    height: 500
+  class Graph
     
-    init: ->
+    constructor: (@width, @height) ->
+
       @svg = d3.select '#svg'
         .append 'svg'
         .attr 'width', @width
@@ -93,30 +90,28 @@ jQuery ->
     _generateY: ->
       Math.random() * 500
 
-
-
-  do Graph.init
-
   # Search functionality
   #AJAX search for nodes on keydown by name and populate search results element.
-  do Searcher = ->
-    @last_term = ''
+  class Searcher
 
-    search = (search_term) ->
+    search: (search_term) ->
+      console.log @name
       if @last_term != search_term
-        clearResults()
+        @clearResults()
         #loading
         if search_term != ''
+          self = @
           $.get "/nodes/name/#{search_term}", (data) ->
-            clearResults()
-            addResults(data)
+            self.addResults(data)
         @last_term = search_term
 
-    clearResults = (data) ->
+
+    clearResults: ->
       $('#results ul').empty()
 
-
-    addResults = (data) ->
+    addResults: (data) ->
+      self = @
+      do @clearResults
       addResult = (id, name) ->
         $('#results ul').append(
           $(document.createElement 'li')
@@ -124,7 +119,7 @@ jQuery ->
             .attr 'href', '#!'
             .html name
             .click () ->
-              Graph.addNode new Node(id, name)
+              self.graph.addNode new Node(id, name)
             .prepend($(document.createElement 'span')
               .attr('class', 'glyphicon glyphicon-user')
             )
@@ -139,11 +134,13 @@ jQuery ->
       else
         addResult person.id, person.name for person in data.people
 
-    $('#name-search').keyup ->
-      search encodeURIComponent this.value
+    constructor: (@graph) ->
+      self = @
+      $('#name-search').keyup ->
+        self.search($(@).val())
 
-    $('#clear').click ->
-      do Graph.clearGraph
+      $('#clear').click ->
+        do Graph.clearGraph
   
   Selecter =
     _selected: 2
@@ -155,11 +152,11 @@ jQuery ->
       @_selected
 
 
-
-
-
   class Node
     constructor: (@id, @name) ->
+
+  graph = new Graph 800, 500
+  searcher = new Searcher graph
 
 
 
