@@ -92,8 +92,12 @@ class Searcher
       #loading
       if search_term != ''
         self = @
-        $.get "/nodes/name/#{search_term}", (data) ->
-          self.addResults(data)
+        $.get(
+          "/nodes/name/#{search_term}"
+          (data) ->
+            self.addResults(data)
+        )
+        
       @last_term = search_term
 
 
@@ -103,14 +107,14 @@ class Searcher
   addResults: (data) ->
     self = @
     do @clearResults
-    addResult = (id, name) ->
+    addResult = (id, name) =>
       $('#results ul').append(
         $(document.createElement 'li')
         .append($(document.createElement 'a')
           .attr 'href', '#!'
           .html name
-          .click () ->
-            self.graph.addNode new Node(id, name)
+          .click () =>
+            @graph.addNode new Node(id, name)
           .prepend($(document.createElement 'span')
             .attr('class', 'glyphicon glyphicon-user')
           )
@@ -130,8 +134,8 @@ class Searcher
     $('#name-search').keyup ->
       self.search($(@).val())
 
-    $('#clear').click ->
-      do self.graph.clearGraph
+    $('#clear').click =>
+      do @graph.clearGraph
 
 class Selecter
 
@@ -142,7 +146,11 @@ class Selecter
     @_selected = if @_selected is 2 then 1 else 2
     console.log 'Select ' + node.id + ': ' + node.name + @selected
     #Add node details to display
+
     @_selected
+
+  showSelection: (num) ->
+    $   ''
 
 
 class Node
@@ -159,7 +167,7 @@ jQuery ->
   $('a#about').click ->
     $('div#graph').fadeOut 'fast', ->
       $('div#about').fadeIn 'fast'
-      
+
   selecter = new Selecter
   graph = new Graph 800, 500, selecter
   searcher = new Searcher graph
