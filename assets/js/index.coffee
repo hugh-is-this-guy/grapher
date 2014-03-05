@@ -64,12 +64,15 @@ class Graph
       .call @force.drag
       .on 'click', (d) ->
         if not d3.event.defaultPrevented # Ignore drag
-          previous_selection = 'selection-' + self.selecter.select d
-          console.log previous_selection
-          d3.select '.' + previous_selection
+          new_class = 'selection-' + self.selecter.select d
+          
+          #Remove class from previous selection...
+          d3.select '.' + new_class
             .attr 'class', 'node unselected'
+
+          #... and add to new selection
           d3.select @
-            .attr 'class', previous_selection
+            .attr 'class', new_class
 
     @node.exit().remove()
 
@@ -86,7 +89,6 @@ class Graph
 class Searcher
 
   search: (search_term) ->
-    console.log @name
     if @last_term != search_term
       @clearResults()
       #loading
@@ -97,7 +99,7 @@ class Searcher
           (data) ->
             self.addResults(data)
         )
-        
+
       @last_term = search_term
 
 
@@ -145,12 +147,13 @@ class Selecter
   select: (node) ->
     @_selected = if @_selected is 2 then 1 else 2
     console.log 'Select ' + node.id + ': ' + node.name + @selected
-    #Add node details to display
 
+    selection = '#selection-' + @_selected
+    $(selection + ' .id .value').text(node.id)
+    $(selection + ' .name .value').text(node.name)
+
+    #Return number of selection so node colours can be changed.
     @_selected
-
-  showSelection: (num) ->
-    $   ''
 
 
 class Node
