@@ -5,9 +5,9 @@ block content
     h1=title
     .row
       .col-md-1
-        a(id='about' class='nav' href='#about') About
+        a(id='show-about' class='nav' href='#about') About
       .col-md-1
-        a(id='graph' class='nav' href='#graph') Graph
+        a(id='show-graph' class='nav' href='#graph') Graph
 
   #content
     #graph
@@ -18,7 +18,7 @@ block content
           input(type='search' name='name-search' id='name-search')
           #results
             ul
-          a(id='clear' href='#!') clear
+          a(id='reset' href='#!') reset
 
         #svg.col-md-8
 
@@ -48,4 +48,8 @@ block content
 
     #about
       h2 About
+      p
+        | Hello! Welcome to grapher, my (
+        a(target="_blank" href="mailto:hughbrace@gmail.com") Hugh Brace's
+        | ) final year project.
   

@@ -27,17 +27,17 @@ class Graph
 
   addNode: (new_node) ->
     if not ((n for n in @nodes when n.name is new_node.name)[0])?
-      new_node.x = @_generateX()
-      new_node.y = @_generateY()
+      new_node.x = generateX()
+      new_node.y = generateY()
       @nodes.push new_node
-      @_draw()
+      @draw()
 
   clearGraph: ->
     @force.nodes []
     @force.links []
     @nodes = @force.nodes()
     @links = @force.links()
-    @_draw()
+    @draw()
 
   tick: ->
     @link.attr 'x1', (d) -> d.source.x
@@ -48,7 +48,7 @@ class Graph
     @node.attr 'cx', (d) -> d.x # Error
     @node.attr 'cy', (d) -> d.y
 
-  _draw: ->
+  draw: ->
     self = @
 
     @link = @link.data @links
@@ -78,10 +78,10 @@ class Graph
 
     @force.start()
 
-  _generateX: ->
+  generateX = ->
     Math.random() * 800
 
-  _generateY: ->
+  generateY = ->
     Math.random() * 500
 
 # Search functionality
@@ -102,6 +102,9 @@ class Searcher
 
       @last_term = search_term
 
+  clearSearch: ->
+    $('#name-search').val('')
+    do @clearResults
 
   clearResults: ->
     do $('#results ul').empty
@@ -109,35 +112,33 @@ class Searcher
   addResults: (data) ->
     self = @
     do @clearResults
-    addResult = (id, name) =>
+    
+    if data.meta.number_of_people == 0
       $('#results ul').append(
-        $(document.createElement 'li')
-        .append($(document.createElement 'a')
+        $('li')
+          .html 'No results'
+      )
+    else
+      @addResult person.id, person.name for person in data.people
+  
+  addResult: (id, name) =>
+    $('#results ul').append(
+      $('<li>')
+        .append($('<a>')
           .attr 'href', '#!'
           .html name
           .click () =>
             @graph.addNode new Node(id, name)
-          .prepend($(document.createElement 'span')
+          .prepend($('<span>')
             .attr('class', 'glyphicon glyphicon-user')
           )
-        )
       )
-    
-    if data.meta.number_of_people == 0
-      $('#results ul').append(
-        $(document.createElement 'li')
-          .html 'No results'
-      )
-    else
-      addResult person.id, person.name for person in data.people
+    )
 
   constructor: (@graph) ->
     self = @
     $('#name-search').keyup ->
       self.search($(@).val())
-
-    $('#clear').click =>
-      do @graph.clearGraph
 
 class Selecter
 
@@ -155,26 +156,39 @@ class Selecter
     #Return number of selection so node colours can be changed.
     @_selected
 
+  clear: ->
+    for selection in [1..2]
+      $("#selection-#{selection} .id .value").text " "
+      $("#selection-#{selection} .name .value").text " "
+    @_selected = 1
+
+
+
 
 class Node
   constructor: (@id, @name) ->
 
 jQuery ->
   #Sets up animations to transition between page sections
-  do $('div#about').hide
+  do $('#about').hide
 
-  $('a#graph').click ->
-    $('div#about').fadeOut 'fast', ->
-      $('div#graph').fadeIn 'fast'
+  $('#show-graph').click ->
+    $('#about').fadeOut 'fast', ->
+      $('#graph').fadeIn 'fast'
 
-  $('a#about').click ->
+  $('#show-about').click ->
     $('div#graph').fadeOut 'fast', ->
       $('div#about').fadeIn 'fast'
+
 
   selecter = new Selecter
   graph = new Graph 800, 500, selecter
   searcher = new Searcher graph
 
 
+  $('#reset').click =>
+      do searcher.clearSearch
+      do graph.clearGraph
+      do selecter.clear
 
 
