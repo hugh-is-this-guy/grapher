@@ -95,10 +95,7 @@ class Searcher
       
       #loading
       if search_term != ''
-        $('<img id="loading" src="/images/loading.gif">')
-        .load( -> 
-          $(@).appendTo('#results')
-        )
+          
         self = @
         $.get(
           "/nodes/name/#{search_term}"
@@ -106,7 +103,12 @@ class Searcher
             do $('#loading').remove
             self.addResults(data)
         )
-      else do $('#loading').remove 
+
+        if $('#loading').length is 0
+          $('<img id="loading" src="/images/loading.gif">')
+          .load( -> 
+            $(@).appendTo('#results')
+          )
 
       @last_term = search_term
 
