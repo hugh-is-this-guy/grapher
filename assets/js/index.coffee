@@ -89,16 +89,24 @@ class Graph
 class Searcher
 
   search: (search_term) ->
+    do $('#loading').remove
     if @last_term != search_term
       @clearResults()
+      
       #loading
       if search_term != ''
+        $('<img id="loading" src="/images/loading.gif">')
+        .load( -> 
+          $(@).appendTo('#results')
+        )
         self = @
         $.get(
           "/nodes/name/#{search_term}"
           (data) ->
+            do $('#loading').remove
             self.addResults(data)
         )
+      else do $('#loading').remove 
 
       @last_term = search_term
 
@@ -113,9 +121,9 @@ class Searcher
     self = @
     do @clearResults
     
-    if data.meta.number_of_people == 0
+    if data.meta.number_of_people is 0
       $('#results ul').append(
-        $('li')
+        $('<li>')
           .html 'No results'
       )
     else
@@ -138,7 +146,7 @@ class Searcher
   constructor: (@graph) ->
     self = @
     $('#name-search').keyup ->
-      self.search($(@).val())
+      self.search($.trim($(@).val()))
 
 class Selecter
 
