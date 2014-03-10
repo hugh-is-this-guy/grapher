@@ -25,12 +25,18 @@ class Graph
       .attr 'width', @width
       .attr 'height', @height
 
+    drag = @force.drag()
+      .on "dragstart", (d) ->
+        d3.select(@).classed "fixed", d.fixed = true
+
+
   addNode: (new_node) ->
     if not ((n for n in @nodes when n.name is new_node.name)[0])?
       new_node.x = generateX()
       new_node.y = generateY()
       @nodes.push new_node
       @draw()
+
 
   clearGraph: ->
     @force.nodes []
@@ -63,26 +69,46 @@ class Graph
       .attr 'r', 15
       .call @force.drag
       .on 'click', (d) ->
-        if not d3.event.defaultPrevented # Ignore drag
-          new_class = 'selection-' + self.selecter.select d
-          
-          #Remove class from previous selection...
-          d3.select '.' + new_class
-            .attr 'class', 'node unselected'
-
-          #... and add to new selection
-          d3.select @
-            .attr 'class', new_class
+        click(d, self, @)
 
     @node.exit().remove()
 
     @force.start()
+
+  #
+  click = (d, self, circle) ->
+    # Ignore drag
+    if not d3.event.defaultPrevented
+      if self.clicked_once
+        self.clicked_once = false
+        clearTimeout self.timer
+        d3.select(circle).classed "fixed", d.fixed = false
+
+      else
+        self.timer = setTimeout( ->
+          new_class = 'selection-' + self.selecter.select d
+          #Remove class from previous selection...
+          d3.select '.' + new_class
+            .attr 'class', 'node unselected'
+          #... and add to new selection
+          d3.select circle
+            .attr 'class', new_class
+          console.log "change!"
+        , 250)
+        self.clicked_once = true
+
 
   generateX = ->
     Math.random() * 800
 
   generateY = ->
     Math.random() * 500
+
+
+
+
+
+
 
 # Search functionality
 #AJAX search for nodes on keydown by name and populate search results element.
