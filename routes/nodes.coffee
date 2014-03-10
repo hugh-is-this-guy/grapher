@@ -30,7 +30,7 @@ getNodes = (q, callback, params) ->
 
     callback response
 
-getRelationships = (q, callback, params) ->
+getRelations = (q, callback, params) ->
   message = {
     query: q
   }
@@ -38,17 +38,14 @@ getRelationships = (q, callback, params) ->
 
   request.post(dbURL).send(message).end (neo4jRes) ->
 
-    console.log neo4jRes.text
-
     results = JSON.parse neo4jRes.text
 
     relationships = if results.data? then (
       {
-        weight: result[0]
-        node: {
+        node:
           id:   result[1]
           name: result[2]
-        }
+        weight: result[0]
       } for result in results.data
     ) else []
 
@@ -81,38 +78,38 @@ exports.findByName = (req, res) ->
     res.json response
   getNodes query, callback, params
 
-exports.getLocalGraph = (req, res) ->
-  console.log "Search for id: #{req.params.id}"
+exports.getRelations = (req, res) ->
+  console.log "Get all relations for node #{req.params.id}"
 
-  query = "MATCH (n)-[r]-(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name;"
+  query = "MATCH (n)-[r]-(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name ORDER BY r.weight DESC;"
   params =
     id: +req.params.id
 
   callback = (response) ->
     res.json response
 
-  getRelationships query, callback, params
+  getRelations query, callback, params
 
-exports.getOutwardsLocalGraph = (req, res) ->
-  console.log "Search for id: #{req.params.id}"
+exports.getOutwardRelations = (req, res) ->
+  console.log "Get outwards relations for node #{req.params.id}"
 
-  query = "MATCH (n)-[r]->(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name;"
+  query = "MATCH (n)-[r]->(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name ORDER BY r.weight DESC;"
   params =
     id: +req.params.id
 
   callback = (response) ->
     res.json response
 
-  getRelationships query, callback, params
+  getRelations query, callback, params
 
-exports.getInwardsLocalGraph = (req, res) ->
-  console.log "Search for id: #{req.params.id}"
+exports.getInwardRelations = (req, res) ->
+  console.log "Get inward relations for node #{req.params.id}"
 
-  query = "MATCH (n)<-[r]-(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name;"
+  query = "MATCH (n)<-[r]-(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name ORDER BY r.weight DESC;"
   params =
     id: +req.params.id
 
   callback = (response) ->
     res.json response
 
-  getRelationships query, callback, params
+  getRelations query, callback, params
