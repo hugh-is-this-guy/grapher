@@ -100,6 +100,8 @@ class Graph
             d3.select circle
               .attr 'class', new_class
             console.log "change!"
+
+          self.clicked_once = false
         , 250)
         self.clicked_once = true
 
