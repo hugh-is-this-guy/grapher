@@ -147,8 +147,9 @@ class Searcher
 
   constructor: (@graph) ->
     self = @
-    $('#name-search').keyup ->
-      self.search($.trim($(@).val()))
+    $('#name-search').keyup (e) ->
+      if e.keyCode == 13
+        self.search($.trim($(@).val()))
 
 class Selecter
 
