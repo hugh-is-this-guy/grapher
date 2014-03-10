@@ -64,12 +64,15 @@ class Graph
 
     @node = @node.data @nodes
 
-    @node.enter().insert 'circle'
+    @node.enter().append 'circle'
       .attr 'class', 'node unselected'
       .attr 'r', 15
       .call @force.drag
       .on 'click', (d) ->
         click(d, self, @)
+      .append 'title'
+        .text (d) -> 
+          d.name
 
     @node.exit().remove()
 
@@ -86,14 +89,17 @@ class Graph
 
       else
         self.timer = setTimeout( ->
-          new_class = 'selection-' + self.selecter.select d
-          #Remove class from previous selection...
-          d3.select '.' + new_class
-            .attr 'class', 'node unselected'
-          #... and add to new selection
-          d3.select circle
-            .attr 'class', new_class
-          console.log "change!"
+          selected = self.selecter.select d
+          console.log selected
+          if selected > 0
+            new_class = 'selection-' + selected
+            #Remove class from previous selection...
+            d3.select '.' + new_class
+              .attr 'class', 'node unselected'
+            #... and add to new selection
+            d3.select circle
+              .attr 'class', new_class
+            console.log "change!"
         , 250)
         self.clicked_once = true
 
@@ -180,24 +186,32 @@ class Searcher
 class Selecter
 
   constructor: ->
-    @_selected = 2
+    @selected = 2
+    @selection = []
 
   select: (node) ->
-    @_selected = if @_selected is 2 then 1 else 2
-    console.log 'Select ' + node.id + ': ' + node.name + @selected
+    @selected = if @selected is 2 then 1 else 2
 
-    selection = '#selection-' + @_selected
-    $(selection + ' .id .value').text(node.id)
-    $(selection + ' .name .value').text(node.name)
+    if node.id not in @selection
+      console.log 'Select ' + node.id + ': ' + node.name + @selected
 
-    #Return number of selection so node colours can be changed.
-    @_selected
+      @selection[@selected] = node.id
+
+      selection = '#selection-' + @selected
+      $(selection + ' .id .value').text(node.id)
+      $(selection + ' .name .value').text(node.name)
+
+      #Return number of selection so node colours can be changed.
+      @selected
+    
+    else
+      0
 
   clear: ->
     for selection in [1..2]
-      $("#selection-#{selection} .id .value").text " "
-      $("#selection-#{selection} .name .value").text " "
-    @_selected = 1
+      $("#selection-#{selection} .id .value").text ""
+      $("#selection-#{selection} .name .value").text ""
+    @selected = 2
 
 
 
