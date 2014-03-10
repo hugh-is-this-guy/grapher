@@ -23,7 +23,10 @@ app.locals.js = js
 app.get "/", routes.index
 app.get "/nodes", nodes.findAll
 app.get "/nodes/name/:name", nodes.findByName
-app.get "/nodes/:id", nodes.findById
+app.get "/nodes/graph/:id", nodes.getLocalGraph
+app.get "/nodes/graph/outwards/:id", nodes.getOutwardsLocalGraph
+app.get "/nodes/graph/inwards/:id", nodes.getInwardsLocalGraph
+#app.get "/path/:from/:to/:limit"
 
 
 app.listen port, ->

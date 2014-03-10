@@ -4,7 +4,7 @@ dbURL = process.env.GRAPHENEDB_URL or "http://localhost:7474"
 dbURL += "/db/data/cypher"
 
 
-queryDatabase = (q, callback, params) ->
+getNodes = (q, callback, params) ->
   message = {
     query: q
   }
@@ -16,8 +16,8 @@ queryDatabase = (q, callback, params) ->
 
     people = if results.data? then (
       {
-        'id'  : result[0].data.id,
-        'name': result[0].data.name
+        id  : result[0].data.id,
+        name: result[0].data.name
       } for result in results.data
     ) else []
 
@@ -30,10 +30,44 @@ queryDatabase = (q, callback, params) ->
 
     callback response
 
+getRelationships = (q, callback, params) ->
+  message = {
+    query: q
+  }
+  message.params = params if params?
+
+  request.post(dbURL).send(message).end (neo4jRes) ->
+
+    console.log neo4jRes.text
+
+    results = JSON.parse neo4jRes.text
+
+    relationships = if results.data? then (
+      {
+        weight: result[0]
+        node: {
+          id:   result[1]
+          name: result[2]
+        }
+      } for result in results.data
+    ) else []
+
+    response = {
+      meta: {
+        node: {
+          id: params.id
+        }
+        number_of_relationships: relationships.length
+      }
+      relationships: relationships 
+    }
+
+    callback response
+
 exports.findAll = (req, res) ->
   console.log 'All nodes requested.'
   query = "MATCH (n) RETURN n ORDER BY n.name;"
-  queryDatabase query, (response) ->
+  getNodes query, (response) ->
     res.json response
 
 exports.findByName = (req, res) ->
@@ -45,19 +79,40 @@ exports.findByName = (req, res) ->
 
   callback = (response) ->
     res.json response
-  queryDatabase query, callback, params
+  getNodes query, callback, params
 
-exports.findById = (req, res) ->
+exports.getLocalGraph = (req, res) ->
   console.log "Search for id: #{req.params.id}"
 
-  query = "MATCH (n) WHERE n.id = { id } RETURN n ORDER BY n.name;"
+  query = "MATCH (n)-[r]-(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name;"
   params =
     id: +req.params.id
 
   callback = (response) ->
     res.json response
 
-  queryDatabase query, callback, params
+  getRelationships query, callback, params
 
+exports.getOutwardsLocalGraph = (req, res) ->
+  console.log "Search for id: #{req.params.id}"
 
+  query = "MATCH (n)-[r]->(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name;"
+  params =
+    id: +req.params.id
 
+  callback = (response) ->
+    res.json response
+
+  getRelationships query, callback, params
+
+exports.getInwardsLocalGraph = (req, res) ->
+  console.log "Search for id: #{req.params.id}"
+
+  query = "MATCH (n)<-[r]-(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name;"
+  params =
+    id: +req.params.id
+
+  callback = (response) ->
+    res.json response
+
+  getRelationships query, callback, params
