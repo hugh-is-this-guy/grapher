@@ -123,7 +123,6 @@ class Graph
 class Searcher
 
   search: (search_term) ->
-    do $('#loading').remove
     if @last_term != search_term
       @clearResults()
       
@@ -140,9 +139,8 @@ class Searcher
 
         if $('#loading').length is 0
           $('<img id="loading" src="/images/loading.gif">')
-          .load( -> 
+          .load -> 
             $(@).appendTo('#results')
-          )
 
       @last_term = search_term
 
