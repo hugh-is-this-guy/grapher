@@ -25,10 +25,6 @@ class Graph
       .attr 'width', @width
       .attr 'height', @height
 
-    drag = @force.drag()
-      .on "dragstart", (d) ->
-        d3.select(@).classed "fixed", d.fixed = true
-
 
   addNode: (new_node) ->
     if not ((n for n in @nodes when n.name is new_node.name)[0])?
@@ -83,6 +79,7 @@ class Graph
     # Ignore drag
     if not d3.event.defaultPrevented
       if self.clicked_once
+        #Double click
         self.clicked_once = false
         clearTimeout self.timer
         d3.select(circle).classed "fixed", d.fixed = false
@@ -95,15 +92,20 @@ class Graph
             new_class = 'selection-' + selected
             #Remove class from previous selection...
             d3.select '.' + new_class
-              .attr 'class', 'node unselected'
+              .classed 'unselected', true
+              .classed new_class, false
             #... and add to new selection
             d3.select circle
-              .attr 'class', new_class
+              .classed new_class, true
             console.log "change!"
 
           self.clicked_once = false
         , 250)
         self.clicked_once = true
+    else
+      d3.select(circle).classed "fixed", d.fixed = true
+
+
 
 
   generateX = ->
@@ -187,6 +189,7 @@ class Selecter
   constructor: ->
     @selected = 2
     @selection = []
+    do $('.selection').hide
 
   select: (node) ->
     @selected = if @selected is 2 then 1 else 2
@@ -199,7 +202,7 @@ class Selecter
       selection = '#selection-' + @selected
       $(selection + ' .id .value').text(node.id)
       $(selection + ' .name .value').text(node.name)
-      do $(selection).show
+      do $(selection).fadeIn
 
       #Return number of selection so node colours can be changed.
       @selected
@@ -211,7 +214,8 @@ class Selecter
     for selection in [1..2]
       $("#selection-#{selection} .id .value").text ""
       $("#selection-#{selection} .name .value").text ""
-      do $(".selection").hide
+      do $(".selection").fadeOut
+      @selection = []
     @selected = 2
 
 
