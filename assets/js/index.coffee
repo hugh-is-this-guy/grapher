@@ -116,8 +116,6 @@ class Graph
 
 
 
-
-
 # Search functionality
 #AJAX search for nodes on keydown by name and populate search results element.
 class Searcher
@@ -146,6 +144,7 @@ class Searcher
 
   clearSearch: ->
     $('#name-search').val('')
+    @last_term = ""
     do @clearResults
 
   clearResults: ->
@@ -200,6 +199,7 @@ class Selecter
       selection = '#selection-' + @selected
       $(selection + ' .id .value').text(node.id)
       $(selection + ' .name .value').text(node.name)
+      do $(selection).show
 
       #Return number of selection so node colours can be changed.
       @selected
@@ -211,6 +211,7 @@ class Selecter
     for selection in [1..2]
       $("#selection-#{selection} .id .value").text ""
       $("#selection-#{selection} .name .value").text ""
+      do $(".selection").hide
     @selected = 2
 
 
