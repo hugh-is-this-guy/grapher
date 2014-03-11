@@ -31,7 +31,7 @@ class Graph
       new_node.x = generateX()
       new_node.y = generateY()
       @nodes.push new_node
-      @draw()
+      do @draw
 
 
   clearGraph: ->
@@ -39,7 +39,7 @@ class Graph
     @force.links []
     @nodes = @force.nodes()
     @links = @force.links()
-    @draw()
+    do @draw
 
   tick: ->
     @link.attr 'x1', (d) -> d.source.x
@@ -57,6 +57,8 @@ class Graph
 
     @link.enter().insert 'line', '.node'
       .attr 'class', 'link'
+
+    @link.exit().remove()
 
     @node = @node.data @nodes
 
@@ -87,7 +89,6 @@ class Graph
       else
         self.timer = setTimeout( ->
           selected = self.selecter.select d
-          console.log selected
           if selected > 0
             new_class = 'selection-' + selected
             #Remove class from previous selection...
@@ -97,7 +98,6 @@ class Graph
             #... and add to new selection
             d3.select circle
               .classed new_class, true
-            console.log "change!"
 
           self.clicked_once = false
         , 250)
@@ -190,6 +190,9 @@ class Selecter
     @selected = 2
     @selection = []
     do $('.selection').hide
+    $(".relations").click ->
+      selection_id = "#selection-" + $(@).attr("id").split("-")[1]
+      console.log $(selection_id + " .id .value").text()
 
   select: (node) ->
     @selected = if @selected is 2 then 1 else 2
