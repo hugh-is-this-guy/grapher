@@ -17,7 +17,7 @@ class Graph
       .charge -150
       .on 'tick', @tick.bind @
       .linkDistance (d) ->
-        Math.sqrt ((1 / d.weight) * 1000)
+        (Math.sqrt ((1 / d.weight) * 10000)) + 5
 
     @nodes = @force.nodes()
     @links = @force.links()
@@ -26,6 +26,14 @@ class Graph
       .attr 'width', @width
       .attr 'height', @height
 
+  selectRoot: (root) ->
+    d3.select '#node-' + root.id
+      .classed 'selection-1', true
+
+
+  highlightNode: (node) ->
+    if ((n for n in @nodes when n.name is new_node.name)[0])?
+      false
 
   addNode: (new_node) ->
     if not ((n for n in @nodes when n.name is new_node.name)[0])?
@@ -35,7 +43,10 @@ class Graph
       do @draw
 
   drawGraph: (nodes, links) ->
-    do @clearGraph
+    console.log "nodes"
+    console.log nodes
+    console.log "links"
+    console.log links
     @nodes = nodes
     @links = links
     do @draw
@@ -54,24 +65,28 @@ class Graph
     @link.attr 'x2', (d) -> d.target.x
     @link.attr 'y2', (d) -> d.target.y
     
-    @node.attr 'cx', (d) -> d.x # Error
+    @node.attr 'cx', (d) -> d.x
     @node.attr 'cy', (d) -> d.y
 
   draw: ->
     self = @
 
-    @link = @link.data @links
+    @link = @link.data @links, (d) ->
+      self.links.indexOf d
 
-    @link.enter().append 'line'
+    @link.enter().insert 'line', '.node'
       .attr 'class', 'link'
       .style 'stroke-width', (d) -> 
         Math.sqrt d.weight
 
     @link.exit().remove()
 
-    @node = @node.data @nodes
+    @node = @node.data @nodes, (d) ->
+      self.nodes.indexOf d
 
     @node.enter().append 'circle'
+      .attr 'id', (d) ->
+        'node-' + d.id
       .attr 'class', 'node unselected'
       .attr 'r', 10
       .call @force.drag
@@ -79,7 +94,7 @@ class Graph
         click(d, self, @)
       .append 'title'
         .text (d) -> 
-          d.name
+          d.name + d.id
 
     @node.exit().remove()
 
@@ -198,6 +213,7 @@ class Searcher
 
 
 
+
 class Selecter
 
   constructor: ->
@@ -260,10 +276,10 @@ class Selecter
             weight: relation.weight
           }
 
-        console.log nodes
-        console.log links
-        do self.graph.clearGraph
         self.graph.drawGraph nodes, links
+        do self.clear
+        self.select root
+        self.graph.selectRoot root
     )
 
 

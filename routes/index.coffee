@@ -4,5 +4,4 @@
 exports.index = (req, res) ->
   res.render "index",
     title: "Grapher"
-
-  return
+  console.log "GET /"    
