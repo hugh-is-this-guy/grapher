@@ -14,9 +14,10 @@ class Graph
 
     @force = d3.layout.force()
       .size [@width, @height]
-      .linkDistance 30
       .charge -150
       .on 'tick', @tick.bind @
+      .linkDistance (d) ->
+        Math.sqrt ((1 / d.weight) * 1000)
 
     @nodes = @force.nodes()
     @links = @force.links()
@@ -33,6 +34,11 @@ class Graph
       @nodes.push new_node
       do @draw
 
+  drawGraph: (nodes, links) ->
+    do @clearGraph
+    @nodes = nodes
+    @links = links
+    do @draw
 
   clearGraph: ->
     @force.nodes []
@@ -41,11 +47,12 @@ class Graph
     @links = @force.links()
     do @draw
 
+
   tick: ->
     @link.attr 'x1', (d) -> d.source.x
     @link.attr 'y1', (d) -> d.source.y
-    @link.attr 'x2', (d) -> d.source.x
-    @link.attr 'y2', (d) -> d.source.y
+    @link.attr 'x2', (d) -> d.target.x
+    @link.attr 'y2', (d) -> d.target.y
     
     @node.attr 'cx', (d) -> d.x # Error
     @node.attr 'cy', (d) -> d.y
@@ -55,8 +62,10 @@ class Graph
 
     @link = @link.data @links
 
-    @link.enter().insert 'line', '.node'
+    @link.enter().append 'line'
       .attr 'class', 'link'
+      .style 'stroke-width', (d) -> 
+        Math.sqrt d.weight
 
     @link.exit().remove()
 
@@ -64,7 +73,7 @@ class Graph
 
     @node.enter().append 'circle'
       .attr 'class', 'node unselected'
-      .attr 'r', 15
+      .attr 'r', 10
       .call @force.drag
       .on 'click', (d) ->
         click(d, self, @)
@@ -74,19 +83,26 @@ class Graph
 
     @node.exit().remove()
 
-    @force.start()
+    @force.nodes @nodes
+          .links @links
+          .start()
 
   #
   click = (d, self, circle) ->
-    # Ignore drag
-    if not d3.event.defaultPrevented
+    # Drag
+    if d3.event.defaultPrevented
+      d3.select(circle).classed "fixed", d.fixed = true
+
+    else
       if self.clicked_once
-        #Double click
+        # Double click
         self.clicked_once = false
         clearTimeout self.timer
         d3.select(circle).classed "fixed", d.fixed = false
 
       else
+        # Single click
+        # Waits for second click, and selects node if none.
         self.timer = setTimeout( ->
           selected = self.selecter.select d
           if selected > 0
@@ -102,10 +118,6 @@ class Graph
           self.clicked_once = false
         , 250)
         self.clicked_once = true
-    else
-      d3.select(circle).classed "fixed", d.fixed = true
-
-
 
 
   generateX = ->
@@ -184,15 +196,23 @@ class Searcher
       if e.keyCode == 13
         self.search($.trim($(@).val()))
 
+
+
 class Selecter
 
   constructor: ->
     @selected = 2
     @selection = []
+    self = @
     do $('.selection').hide
     $(".relations").click ->
       selection_id = "#selection-" + $(@).attr("id").split("-")[1]
-      console.log $(selection_id + " .id .value").text()
+      id = $(selection_id + " .id .value").text()
+      name = $(selection_id + " .name .value").text()
+
+      self.showRelations new Node id, name
+
+  graph: (@graph) ->
 
   select: (node) ->
     @selected = if @selected is 2 then 1 else 2
@@ -221,6 +241,31 @@ class Selecter
       @selection = []
     @selected = 2
 
+  showRelations: (root) ->
+    self = @
+    $.get(
+      "/nodes/relations/outwards/#{root.id}"
+      (data) ->
+        nodes = [root]
+        links = []
+
+        for relation in data.relationships
+          node = new Node relation.node.id, relation.node.name
+
+          nodes.push node
+
+          links.push {
+            source: root
+            target: node
+            weight: relation.weight
+          }
+
+        console.log nodes
+        console.log links
+        do self.graph.clearGraph
+        self.graph.drawGraph nodes, links
+    )
+
 
 
 
@@ -243,6 +288,7 @@ jQuery ->
   selecter = new Selecter
   graph = new Graph 800, 500, selecter
   searcher = new Searcher graph
+  selecter.graph graph
 
 
   $('#reset').click =>
