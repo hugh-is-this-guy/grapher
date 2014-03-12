@@ -26,27 +26,23 @@ class Graph
       .attr 'width', @width
       .attr 'height', @height
 
-  selectRoot: (root) ->
-    d3.select '#node-' + root.id
-      .classed 'selection-1', true
+  selectNode: (node, i) ->
+    d3.select '#node-' + node.id
+      .classed 'selection-' + i, true
 
 
   highlightNode: (node) ->
-    if ((n for n in @nodes when n.name is new_node.name)[0])?
+    if ((n for n in @nodes when n.id is new_node.id)[0])?
       false
 
   addNode: (new_node) ->
-    if not ((n for n in @nodes when n.name is new_node.name)[0])?
+    if not ((n for n in @nodes when n.id is new_node.id)[0])?
       new_node.x = generateX()
       new_node.y = generateY()
       @nodes.push new_node
       do @draw
 
   drawGraph: (nodes, links) ->
-    console.log "nodes"
-    console.log nodes
-    console.log "links"
-    console.log links
     @nodes = nodes
     @links = links
     do @draw
@@ -82,7 +78,7 @@ class Graph
     @link.exit().remove()
 
     @node = @node.data @nodes, (d) ->
-      self.nodes.indexOf d
+      d.id
 
     @node.enter().append 'circle'
       .attr 'id', (d) ->
@@ -94,7 +90,7 @@ class Graph
         click(d, self, @)
       .append 'title'
         .text (d) -> 
-          d.name + d.id
+          "#{d.name} #{d.id}"
 
     @node.exit().remove()
 
@@ -222,11 +218,9 @@ class Selecter
     self = @
     do $('.selection').hide
     $(".relations").click ->
-      selection_id = "#selection-" + $(@).attr("id").split("-")[1]
-      id = $(selection_id + " .id .value").text()
-      name = $(selection_id + " .name .value").text()
+      selection_id = $(@).attr("id").split("-")[1]
 
-      self.showRelations new Node id, name
+      self.showRelations selection_id
 
   graph: (@graph) ->
 
@@ -234,8 +228,6 @@ class Selecter
     @selected = if @selected is 2 then 1 else 2
 
     if node.id not in @selection
-      console.log 'Select ' + node.id + ': ' + node.name + @selected
-
       @selection[@selected] = node.id
 
       selection = '#selection-' + @selected
@@ -257,11 +249,19 @@ class Selecter
       @selection = []
     @selected = 2
 
-  showRelations: (root) ->
+
+  showRelations: (selection) ->
+    css_id = "#selection-" + selection
+    id = $(css_id + " .id .value").text()
+    name = $(css_id + " .name .value").text()
+    root = new Node id, name
     self = @
+
+    # Get neighbours for selected node
     $.get(
       "/nodes/relations/outwards/#{root.id}"
       (data) ->
+        # Get callback
         nodes = [root]
         links = []
 
@@ -276,10 +276,28 @@ class Selecter
             weight: relation.weight
           }
 
+
+        #If the user has selected another node, add it to the dataset if not there already.
+        other_selection = if +selection is 2 then 1 else 2
+        other_css_id = "#selection-" + other_selection
+        text = $(other_css_id + " .id .value").text()
+        other_id = if text is "" then undefined else text
+
+        if other_id?
+          other_name = $(other_css_id + " .name .value").text()
+          other_node = new Node other_id, other_name
+          
+          # If other selection was in nodes
+          if not ((n for n in nodes when n.id is other_node.id)[0])?
+            nodes.push other_node
+
         self.graph.drawGraph nodes, links
-        do self.clear
-        self.select root
-        self.graph.selectRoot root
+        # Give root node same colour as on previous visualisation
+        self.graph.selectNode root, selection
+
+        if other_node?
+          self.graph.selectNode other_node, other_selection
+    
     )
 
 
