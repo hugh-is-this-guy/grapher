@@ -32,8 +32,22 @@ class Graph
 
 
   highlightNode: (node) ->
-    if ((n for n in @nodes when n.id is new_node.id)[0])?
-      false
+    id = '#node-' + node.id
+    circle = d3.select id
+    @svg.append "circle"
+      .attr({
+        r: 10
+        cx: circle.attr "cx"
+        cy: circle.attr "cy"
+      })
+      .style "fill", circle.style "fill"
+      .transition()
+      .attr "r", 30
+      .style "opacity", 0
+      .duration 400
+      .remove()
+
+
 
   addNode: (new_node) ->
     if not ((n for n in @nodes when n.id is new_node.id)[0])?
@@ -41,6 +55,9 @@ class Graph
       new_node.y = generateY()
       @nodes.push new_node
       do @draw
+
+    else
+      @highlightNode new_node
 
   drawGraph: (nodes, links) ->
     @nodes = nodes
@@ -77,13 +94,19 @@ class Graph
 
     @link.exit().remove()
 
+    console.log @node
+
     @node = @node.data @nodes, (d) ->
       d.id
+
+    console.log @node
+
+    @node.exit().remove()
 
     @node.enter().append 'circle'
       .attr 'id', (d) ->
         'node-' + d.id
-      .attr 'class', 'node unselected'
+      .attr 'class', 'node'
       .attr 'r', 10
       .call @force.drag
       .on 'click', (d) ->
@@ -92,7 +115,6 @@ class Graph
         .text (d) -> 
           "#{d.name} #{d.id}"
 
-    @node.exit().remove()
 
     @force.nodes @nodes
           .links @links
@@ -120,7 +142,6 @@ class Graph
             new_class = 'selection-' + selected
             #Remove class from previous selection...
             d3.select '.' + new_class
-              .classed 'unselected', true
               .classed new_class, false
             #... and add to new selection
             d3.select circle
@@ -194,7 +215,10 @@ class Searcher
           .attr 'href', '#!'
           .html name
           .click () =>
-            @graph.addNode new Node(id, name)
+            node = new Node id, name
+            if not @graph.addNode node
+              @graph.highlightNode node
+
           .prepend($('<span>')
             .attr('class', 'glyphicon glyphicon-user')
           )
@@ -292,9 +316,9 @@ class Selecter
             nodes.push other_node
 
         self.graph.drawGraph nodes, links
-        # Give root node same colour as on previous visualisation
+        
+        # Give selected nodes same colour as in previous visualisation
         self.graph.selectNode root, selection
-
         if other_node?
           self.graph.selectNode other_node, other_selection
     
