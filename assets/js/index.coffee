@@ -252,11 +252,15 @@ class Selecter
     @selected = 2
     @selection = []
     self = @
-    do $('.selection').hide
+    do $('.selection, #paths').hide
     $(".relations").click ->
       selection_id = +($(@).attr("id").split("-")[1])
-
       self.showRelations selection_id
+
+    $("#paths").click ->
+      do self.showPaths
+
+
 
   graph: (@graph) ->
 
@@ -266,10 +270,13 @@ class Selecter
     if +node.id not in @selection
       @selection[@selected] = +node.id
 
-      selection = '#selection-' + @selected
-      $(selection + ' .id .value').text(node.id)
-      $(selection + ' .name .value').text(node.name)
-      do $(selection).fadeIn
+      css_selection_id = '#selection-' + @selected
+      $(css_selection_id + ' .id .value').text(node.id)
+      $(css_selection_id + ' .name .value').text(node.name)
+      do $(css_selection_id).fadeIn
+
+      if @selected is 2
+        do $("#paths").fadeIn
 
       #Return number of selection so node colours can be changed.
       @selected
@@ -282,6 +289,8 @@ class Selecter
       $("#selection-#{selection} .id .value").text ""
       $("#selection-#{selection} .name .value").text ""
       do $(".selection").fadeOut
+      do $("#paths").fadeOut
+
       @selection = []
     @selected = 2
 
@@ -319,6 +328,7 @@ class Selecter
         text = $(other_css_id + " .id .value").text()
         other_id = if text is "" then undefined else +text
 
+        # If there is another selection
         if other_id?
           other_name = $(other_css_id + " .name .value").text()
           other_node = new Node other_id, other_name
@@ -335,6 +345,13 @@ class Selecter
           self.graph.selectNode other_node, other_selection
     
     )
+
+  
+  showPaths: ->
+    from  = +($("#selection-1 .id .value").text())
+    to    = +($("#selection-2 .id .value").text())
+
+    console.log "Path from #{from} to #{to}"
 
 
 
