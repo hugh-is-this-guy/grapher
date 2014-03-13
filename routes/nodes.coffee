@@ -4,6 +4,31 @@ dbURL = process.env.GRAPHENEDB_URL or "http://localhost:7474"
 dbURL += "/db/data/cypher"
 
 
+
+
+exports.findAll = (req, res) ->
+  console.log 'All nodes requested.'
+  query = "MATCH (n) RETURN n ORDER BY n.name;"
+  getNodes query, (response) ->
+    res.json response
+
+exports.findByName = (req, res) ->
+  name = req.params.name
+  console.log "Search for name: #{name}"
+  query = "MATCH (n) 
+            WHERE n.name =~ { regex } 
+            RETURN n 
+            ORDER BY n.name;"
+  params =
+    regex : "(?i).*#{ name }.*"
+
+  callback = (response) ->
+    res.json response
+  getNodes query, callback, params
+
+
+
+
 getNodes = (q, callback, params) ->
   message = {
     query: q
@@ -29,6 +54,27 @@ getNodes = (q, callback, params) ->
     }
 
     callback response
+
+
+
+
+
+exports.getRelations = (req, res) ->
+  console.log "Get all relations for node #{req.params.id}"
+
+  query = "MATCH (n)-[r]-(f) 
+            WHERE n.id = { id } 
+            RETURN r.weight, f.id, f.name 
+            ORDER BY r.weight DESC;"
+  params =
+    id: +req.params.id
+
+  callback = (response) ->
+    res.json response
+
+  getRelations query, callback, params
+
+
 
 getRelations = (q, callback, params) ->
   message = {
@@ -61,55 +107,71 @@ getRelations = (q, callback, params) ->
 
     callback response
 
-exports.findAll = (req, res) ->
-  console.log 'All nodes requested.'
-  query = "MATCH (n) RETURN n ORDER BY n.name;"
-  getNodes query, (response) ->
-    res.json response
 
-exports.findByName = (req, res) ->
-  name = req.params.name
-  console.log "Search for name: #{name}"
-  query = "MATCH (n) WHERE n.name =~ { regex } RETURN n ORDER BY n.name;"
+
+
+
+exports.getPaths = (req, res) ->
+  from  = +req.params.from
+  to    = +req.params.to
+  console.log "Get path from #{from} to #{to}"
+  query = "MATCH (from {id: { from } }), (to {id: { to } }) 
+            MATCH p = (from)-[r:Knows*0..3]-(to)
+            RETURN extract(n in NODES(p)| n.name),
+                   extract(n in NODES(p)| n.id),
+                   extract(k in RELATIONSHIPS(p)| k.weight)
+            ORDER BY length(p)
+            LIMIT 10"
   params =
-    regex : "(?i).*#{ name }.*"
-
-  callback = (response) ->
-    res.json response
-  getNodes query, callback, params
-
-exports.getRelations = (req, res) ->
-  console.log "Get all relations for node #{req.params.id}"
-
-  query = "MATCH (n)-[r]-(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name ORDER BY r.weight DESC;"
-  params =
-    id: +req.params.id
+    from: from
+    to  : to
 
   callback = (response) ->
     res.json response
 
-  getRelations query, callback, params
+  getPaths query, callback, params
 
-exports.getOutwardRelations = (req, res) ->
-  console.log "Get outwards relations for node #{req.params.id}"
 
-  query = "MATCH (n)-[r]->(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name ORDER BY r.weight DESC;"
-  params =
-    id: +req.params.id
+getPaths = (q, callback, params) ->
+  message = {
+    query: q
+  }
+  message.params = params
 
-  callback = (response) ->
-    res.json response
+  request.post(dbURL).send(message).end (neo4jRes) ->
 
-  getRelations query, callback, params
+    results = JSON.parse neo4jRes.text
+    console.log results
 
-exports.getInwardRelations = (req, res) ->
-  console.log "Get inward relations for node #{req.params.id}"
+    response =
+      from:   params.from
+      to:     params.to
+      paths:  []
 
-  query = "MATCH (n)<-[r]-(f) WHERE n.id = { id } RETURN r.weight, f.id, f.name ORDER BY r.weight DESC;"
-  params =
-    id: +req.params.id
+    for result in results.data
+      names   = result[0]
+      ids     = result[1]
+      weights = result[2]
 
-  callback = (response) ->
-    res.json response
+      path = 
+        nodes         : []
+        relationships : []
 
-  getRelations query, callback, params
+      for name, i in names
+        node =
+          name: name
+          id  : ids[i]
+        
+        path.nodes.push node
+
+      for weight, i in weights
+        relationship = 
+          source : ids[i]
+          target : ids[i+1]
+          weight : weight
+
+        path.relationships.push relationship
+        
+      response.paths.push path
+
+    callback response

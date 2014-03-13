@@ -24,9 +24,7 @@ app.get "/", routes.index
 app.get "/nodes", nodes.findAll
 app.get "/nodes/name/:name", nodes.findByName
 app.get "/nodes/relations/:id", nodes.getRelations
-app.get "/nodes/relations/outwards/:id", nodes.getOutwardRelations
-app.get "/nodes/relations/inwards/:id", nodes.getInwardRelations
-#app.get "/path/:from/:to/:limit"
+app.get "/paths/:from/:to", nodes.getPaths
 
 
 app.listen port, ->
