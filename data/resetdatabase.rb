@@ -52,17 +52,20 @@ puts 'Data deleted'
 
 #add nodes
 puts 'Adding nodes (this may take a while)'
-progress = 1
+progress = 0
 for i in 1..1899 do
   query = "CREATE (#{ids[i]}:Person {id: #{i}, name: '#{names[i]}'});"
   post_to_db(query)
-  print '=' if progress % 19 == 0
-  progress += 1
+  if progress > 19
+    print '='
+    progress = 0
+  else  
+    progress += 1
 end
 puts
 puts 'Nodes added'
 
-process = 1
+progress = 0
 puts 'Adding relationships (this will take even longer)'
 process_lines("relationships") do |line, count| 
   from, to, weight  = line.split
@@ -76,8 +79,11 @@ process_lines("relationships") do |line, count|
   CREATE (#{from_id}) - [:Knows{weight: #{weight}}] -> (#{to_id});"
 
   post_to_db(query)
-  print '=' if progress % 200 == 0
-  progress += 1
+  if progress > 138
+    print '='
+    progress = 0
+  else
+    progress += 1
 end
 puts
 puts 'Relationships added'
