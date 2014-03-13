@@ -50,13 +50,17 @@ class Graph
 
 
   addNode: (new_node) ->
-    if not ((n for n in @nodes when n.id is new_node.id)[0])?
+    console.log "@nodes"
+    console.log @nodes
+    if not ((n for n in @nodes when +n.id is +new_node.id)[0])?
+      console.log "add"
       new_node.x = generateX()
       new_node.y = generateY()
       @nodes.push new_node
       do @draw
 
     else
+      console.log "highlight!"
       @highlightNode new_node
 
   drawGraph: (nodes, links) ->
@@ -84,6 +88,8 @@ class Graph
   draw: ->
     self = @
 
+    do @force.stop
+
     @link = @link.data @links, (d) ->
       self.links.indexOf d
 
@@ -94,12 +100,8 @@ class Graph
 
     @link.exit().remove()
 
-    console.log @node
-
     @node = @node.data @nodes, (d) ->
       d.id
-
-    console.log @node
 
     @node.exit().remove()
 
@@ -216,8 +218,7 @@ class Searcher
           .html name
           .click () =>
             node = new Node id, name
-            if not @graph.addNode node
-              @graph.highlightNode node
+            @graph.addNode node
 
           .prepend($('<span>')
             .attr('class', 'glyphicon glyphicon-user')
