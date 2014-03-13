@@ -50,6 +50,8 @@ class Graph
 
 
   addNode: (new_node) ->
+    # Adds new node to the dataset and redraws graph, or highlights it if 
+    # already there
     console.log "@nodes"
     console.log @nodes
     if not ((n for n in @nodes when +n.id is +new_node.id)[0])?
@@ -77,6 +79,7 @@ class Graph
 
 
   tick: ->
+    # Used by d3 for force layout animation
     @link.attr 'x1', (d) -> d.source.x
     @link.attr 'y1', (d) -> d.source.y
     @link.attr 'x2', (d) -> d.target.x
@@ -86,6 +89,9 @@ class Graph
     @node.attr 'cy', (d) -> d.y
 
   draw: ->
+    # Called everytime graph needs to be redrawn. Sets new dataset and defines
+    # functions used by d3 to work out which datapoints have been added and 
+    # removed
     self = @
 
     do @force.stop
@@ -154,6 +160,7 @@ class Graph
         self.clicked_once = true
 
 
+  # Used for random placement of nodes when first added to graph
   generateX = ->
     Math.random() * 800
 
@@ -168,6 +175,7 @@ class Graph
 #AJAX search for nodes on keydown by name and populate search results element.
 class Searcher
 
+  # Sends request to REST service for nodes matching user input.
   search: (search_term) ->
     if @last_term != search_term
       @clearResults()
@@ -179,10 +187,13 @@ class Searcher
         $.get(
           "/nodes/name/#{search_term}"
           (data) ->
+
+            # Callback function removes loading gif and adds results
             do $('#loading').remove
             self.addResults(data)
         )
 
+        # Adds loading gif
         if $('#loading').length is 0
           $('<img id="loading" src="/images/loading.gif">')
           .load -> 
@@ -243,7 +254,7 @@ class Selecter
     self = @
     do $('.selection').hide
     $(".relations").click ->
-      selection_id = $(@).attr("id").split("-")[1]
+      selection_id = +($(@).attr("id").split("-")[1])
 
       self.showRelations selection_id
 
@@ -252,8 +263,8 @@ class Selecter
   select: (node) ->
     @selected = if @selected is 2 then 1 else 2
 
-    if node.id not in @selection
-      @selection[@selected] = node.id
+    if +node.id not in @selection
+      @selection[@selected] = +node.id
 
       selection = '#selection-' + @selected
       $(selection + ' .id .value').text(node.id)
@@ -277,21 +288,21 @@ class Selecter
 
   showRelations: (selection) ->
     css_id = "#selection-" + selection
-    id = $(css_id + " .id .value").text()
+    id = +($(css_id + " .id .value").text())
     name = $(css_id + " .name .value").text()
     root = new Node id, name
     self = @
 
     # Get neighbours for selected node
     $.get(
-      "/nodes/relations/outwards/#{root.id}"
+      "/nodes/relations/#{root.id}"
       (data) ->
         # Get callback
         nodes = [root]
         links = []
 
         for relation in data.relationships
-          node = new Node relation.node.id, relation.node.name
+          node = new Node +(relation.node.id), relation.node.name
 
           nodes.push node
 
@@ -306,7 +317,7 @@ class Selecter
         other_selection = if +selection is 2 then 1 else 2
         other_css_id = "#selection-" + other_selection
         text = $(other_css_id + " .id .value").text()
-        other_id = if text is "" then undefined else text
+        other_id = if text is "" then undefined else +text
 
         if other_id?
           other_name = $(other_css_id + " .name .value").text()
