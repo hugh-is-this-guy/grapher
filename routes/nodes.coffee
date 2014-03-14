@@ -115,13 +115,16 @@ exports.getPaths = (req, res) ->
   from  = +req.params.from
   to    = +req.params.to
   console.log "Get path from #{from} to #{to}"
-  query = "MATCH (from {id: { from } }), (to {id: { to } }) 
-            MATCH p = (from)-[r:Knows*0..3]-(to)
-            RETURN extract(n in NODES(p)| n.name),
-                   extract(n in NODES(p)| n.id),
-                   extract(k in RELATIONSHIPS(p)| k.weight)
-            ORDER BY length(p)
-            LIMIT 10"
+  query = "MATCH (from {id: { from }}), (to { id: { to } }) 
+            MATCH p = (from)-[:Knows*0..3]-(to)
+            WITH extract(n in nodes(p)| n.id) as ids,
+                 extract(n in NODES(p)| n.name) as names,
+                 extract(k in relationships(p)| k.weight) as weights,
+                 length(p) as length
+            RETURN ids, names, weights, length,
+                   reduce(total=0, w in weights | total + w) as cost
+            ORDER BY length, cost / length DESC
+            LIMIT 15"
   params =
     from: from
     to  : to
@@ -149,11 +152,15 @@ getPaths = (q, callback, params) ->
       paths:  []
 
     for result in results.data
-      names   = result[0]
-      ids     = result[1]
+      ids     = result[0]
+      names   = result[1]
       weights = result[2]
+      length  = result[3]
+      cost    = result[4]
 
-      path = 
+      path =
+        length        : length
+        cost          : cost
         nodes         : []
         relationships : []
 
