@@ -52,17 +52,13 @@ class Graph
   addNode: (new_node) ->
     # Adds new node to the dataset and redraws graph, or highlights it if 
     # already there
-    console.log "@nodes"
-    console.log @nodes
     if not ((n for n in @nodes when +n.id is +new_node.id)[0])?
-      console.log "add"
       new_node.x = generateX()
       new_node.y = generateY()
       @nodes.push new_node
       do @draw
 
     else
-      console.log "highlight!"
       @highlightNode new_node
 
   drawGraph: (nodes, links) ->
@@ -185,7 +181,7 @@ class Searcher
           
         self = @
         $.get(
-          "/nodes/name/#{search_term}"
+          "/nodes/search/name/#{search_term}"
           (data) ->
 
             # Callback function removes loading gif and adds results
@@ -360,27 +356,29 @@ class Selecter
         links = []
 
         # Build lists of nodes and links
-        for path in data.paths
-          for node in path.nodes
-            nodes.push node if not Node.isNodeInList node, nodes
+        if data.paths.length > 0
 
-          for l in path.relationships
-            from = (n for n in nodes when n.id is l.source)[0]
-            to   = (n for n in nodes when n.id is l.target)[0]
+          for path in data.paths
+            for node in path.nodes
+              nodes.push node if not Node.isNodeInList node, nodes
 
-            link = new Link from, to, l.weight
-            links.push link if not Link.isLinkInList link, links
+            for l in path.relationships
+              from = (n for n in nodes when n.id is l.source)[0]
+              to   = (n for n in nodes when n.id is l.target)[0]
+
+              link = new Link from, to, l.weight
+              links.push link if not Link.isLinkInList link, links
 
 
-        console.log nodes
-        console.log links
+          # Draw graph
+          self.graph.drawGraph nodes, links
 
-        # Draw graph
-        self.graph.drawGraph nodes, links
-
-        # Set path ends on graph
-        self.graph.selectNode from
-        self.graph.selectNode to
+          # Set path ends on graph
+          self.graph.selectNode from
+          self.graph.selectNode to
+          
+        else
+          alert "No paths of length less than three :("
 
     )
 
