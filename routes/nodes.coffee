@@ -4,6 +4,36 @@ dbURL = process.env.GRAPHENEDB_URL or "http://localhost:7474"
 dbURL += "/db/data/cypher"
 
 
+exports.getNode = (req, res) ->
+  console.log "Node #{req.params.id} requested."
+  query = "MATCH (n) WHERE n.id = { id } RETURN n.name;"
+  params =
+    id: +req.params.id
+  callback =  (response) ->
+    res.json response
+
+  getNode query, callback, params
+
+
+getNode = (q, callback, params) ->
+  message = {
+    query : q
+    params: params
+  }
+
+  request.post(dbURL).send(message).end (neo4jRes) ->
+
+    results = JSON.parse neo4jRes.text
+
+    response = {
+      node: {
+        id  : params.id
+        name: results.data[0][0]
+      }
+    }
+
+    callback response
+
 
 
 exports.findAll = (req, res) ->

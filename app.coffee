@@ -22,7 +22,8 @@ app.locals.js = js
 
 app.get "/", routes.index
 app.get "/nodes", nodes.findAll
-app.get "/nodes/name/:name", nodes.findByName
+app.get "/nodes/:id", nodes.getNode
+app.get "/nodes/search/name/:name", nodes.findByName
 app.get "/nodes/relations/:id", nodes.getRelations
 app.get "/paths/:from/:to", nodes.getPaths
 
