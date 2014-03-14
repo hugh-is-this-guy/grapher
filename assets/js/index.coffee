@@ -14,7 +14,7 @@ class Graph
 
     @force = d3.layout.force()
       .size [@width, @height]
-      .charge -150
+      .charge -1000
       .on 'tick', @tick.bind @
       .linkDistance (d) ->
         (Math.sqrt ((1 / d.weight) * 10000)) + 5
@@ -27,6 +27,7 @@ class Graph
       .attr 'height', @height
 
   selectNode: (node, i) ->
+    console.log "selectNode: #{i}"
     d3.select '#node-' + node.id
       .classed 'selection-' + i, true
 
@@ -99,6 +100,9 @@ class Graph
       .attr 'class', 'link'
       .style 'stroke-width', (d) -> 
         Math.sqrt d.weight
+      .append 'title'
+        .text (d) -> 
+          "#{d.source.name} -- #{d.target.name} (#{d.weight})"
 
     @link.exit().remove()
 
@@ -117,7 +121,7 @@ class Graph
         click(d, self, @)
       .append 'title'
         .text (d) -> 
-          "#{d.name} #{d.id}"
+          "#{d.id} - #{d.name}"
 
 
     @force.nodes @nodes
@@ -143,6 +147,7 @@ class Graph
         self.timer = setTimeout( ->
           selected = self.selecter.select d
           if selected > 0
+            console.log "click: #{selected}"
             new_class = 'selection-' + selected
             #Remove class from previous selection...
             d3.select '.' + new_class
@@ -311,11 +316,7 @@ class Selecter
 
           nodes.push node
 
-          links.push {
-            source: root
-            target: node
-            weight: relation.weight
-          }
+          links.push new Link root, node, relation.weight
 
 
         #If the user has selected another node, add it to the dataset if not there already.
@@ -348,8 +349,7 @@ class Selecter
     to   = +($("#selection-2 .id .value").text())
     self = @
 
-    $.get(
-      "/paths/#{from}/#{to}"
+    displayPaths = (from, to) ->
       (data) ->
         # Callback function
         nodes = []
@@ -373,14 +373,10 @@ class Selecter
           # Draw graph
           self.graph.drawGraph nodes, links
 
-          # Set path ends on graph
-          self.graph.selectNode from
-          self.graph.selectNode to
-          
         else
           alert "No paths of length less than three :("
 
-    )
+    $.get "/paths/#{from}/#{to}", displayPaths(from, to)
 
 
 
