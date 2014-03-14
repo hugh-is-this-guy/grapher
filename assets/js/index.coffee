@@ -306,7 +306,7 @@ class Selecter
     $.get(
       "/nodes/relations/#{root.id}"
       (data) ->
-        # Get callback
+        # Callback function
         nodes = [root]
         links = []
 
@@ -348,16 +348,65 @@ class Selecter
 
   
   showPaths: ->
-    from  = +($("#selection-1 .id .value").text())
-    to    = +($("#selection-2 .id .value").text())
+    from = +($("#selection-1 .id .value").text())
+    to   = +($("#selection-2 .id .value").text())
+    self = @
 
-    console.log "Path from #{from} to #{to}"
+    $.get(
+      "/paths/#{from}/#{to}"
+      (data) ->
+        # Callback function
+        nodes = []
+        links = []
+
+        # Build lists of nodes and links
+        for path in data.paths
+          for node in path.nodes
+            nodes.push node if not Node.isNodeInList node, nodes
+
+          for l in path.relationships
+            from = (n for n in nodes when n.id is l.source)[0]
+            to   = (n for n in nodes when n.id is l.target)[0]
+
+            link = new Link from, to, l.weight
+            links.push link if not Link.isLinkInList link, links
+
+
+        console.log nodes
+        console.log links
+
+        # Draw graph
+        self.graph.drawGraph nodes, links
+
+        # Set path ends on graph
+        self.graph.selectNode from
+        self.graph.selectNode to
+
+    )
+
+
 
 
 
 
 class Node
   constructor: (@id, @name) ->
+
+  @isNodeInList : (node, nodes) ->
+    ((n for n in nodes when n.id is node.id)[0])?
+
+
+class Link
+  constructor: (source, target, @weight) ->
+    # Source is always the lower of the two ids, to aid in the comparisson of
+    # two links.
+    @source = if source.id < target.id then source else target
+    @target = if source.id > target.id then source else target
+
+  @isLinkInList : (link, links) ->
+    ((l for l in links when l.source.id is link.source.id and l.target.id is link.target.id)[0])?
+
+
 
 jQuery ->
   #Sets up animations to transition between page sections
