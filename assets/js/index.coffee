@@ -14,7 +14,7 @@ class Graph
 
     @force = d3.layout.force()
       .size [@width, @height]
-      .charge -1000
+      .charge -750
       .on 'tick', @tick.bind @
       .linkDistance (d) ->
         (Math.sqrt ((1 / d.weight) * 10000)) + 5
@@ -416,7 +416,7 @@ jQuery ->
 
 
   selecter = new Selecter
-  graph = new Graph 800, 500, selecter
+  graph = new Graph 800, 600, selecter
   searcher = new Searcher graph
   selecter.graph graph
 
