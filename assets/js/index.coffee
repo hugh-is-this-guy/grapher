@@ -123,6 +123,9 @@ class Graph
         .text (d) -> 
           "#{d.id} - #{d.name}"
 
+    d3.select ".fixed"
+      .classed "fixed", false
+
 
     @force.nodes @nodes
           .links @links
