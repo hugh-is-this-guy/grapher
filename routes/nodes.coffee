@@ -174,7 +174,6 @@ getPaths = (q, callback, params) ->
   request.post(dbURL).send(message).end (neo4jRes) ->
 
     results = JSON.parse neo4jRes.text
-    console.log results
 
     response =
       from:   params.from

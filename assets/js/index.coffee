@@ -27,7 +27,6 @@ class Graph
       .attr 'height', @height
 
   selectNode: (node, i) ->
-    console.log "selectNode: #{i}"
     d3.select '#node-' + node.id
       .classed 'selection-' + i, true
 
@@ -123,14 +122,15 @@ class Graph
         .text (d) -> 
           "#{d.id} - #{d.name}"
 
-    d3.select ".fixed"
-      .classed "fixed", false
-
     @force.nodes @nodes
           .links @links
           .start()
 
-  #
+    d3.selectAll ".fixed"
+      .classed "fixed", false
+
+
+
   click = (d, self, circle) ->
     # Drag
     if d3.event.defaultPrevented
@@ -149,7 +149,6 @@ class Graph
         self.timer = setTimeout( ->
           selected = self.selecter.select d
           if selected > 0
-            console.log "click: #{selected}"
             new_class = 'selection-' + selected
             #Remove class from previous selection...
             d3.select '.' + new_class
