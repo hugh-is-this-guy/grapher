@@ -174,8 +174,6 @@ class Graph
 
 
 
-# Search functionality
-#AJAX search for nodes on keydown by name and populate search results element.
 class Searcher
 
   # Sends request to REST service for nodes matching user input.
@@ -185,22 +183,34 @@ class Searcher
       
       #loading
       if search_term
+
+        if @ajax?
+          do @ajax.abort
           
         self = @
-        $.get(
+        @ajax = $.get(
           "/nodes/search/name/#{search_term}"
           (data) ->
 
-            # Callback function removes loading gif and adds results
+            # Callback function removes loading gif and adds results and nulls ajax
+            # member variable
+            self.ajax = null
             do $('#loading').remove
             self.addResults(data)
         )
 
-        # Adds loading gif
+        # Adds loading gif if not already present
         if $('#loading').length is 0
           $('<img id="loading" src="/images/loading.gif">')
           .load -> 
-            $(@).appendTo('#results')
+            if $('#loading').length is 0
+              $(@).appendTo('#results')
+
+      # If search term empty, aborts outstanding ajax requests and clears results
+      else
+        if @ajax?
+          do @ajax.abort 
+        do @clearResults
 
       @last_term = search_term
 
@@ -211,10 +221,13 @@ class Searcher
 
   clearResults: ->
     do $('#results ul').empty
+    do $('#loading').remove
 
   addResults: (data) ->
     self = @
     do @clearResults
+
+    console.log "Add"
     
     if data.meta.number_of_people is 0
       $('#results ul').append(
@@ -243,8 +256,8 @@ class Searcher
   constructor: (@graph) ->
     self = @
     $('#name-search').keyup (e) ->
-      if e.keyCode == 13
-        self.search($.trim($(@).val()))
+      self.search($.trim($(@).val()))
+      #if e.keyCode == 13
 
 
 
@@ -306,6 +319,8 @@ class Selecter
       $("#selection-#{selection} .name .value").text ""
       do $(".selection").fadeOut
       do $("#paths").fadeOut
+      $(".minlinks").val(0)
+      $(".links .value").text(0)
 
       @selection = []
     @selected = 2
