@@ -287,8 +287,8 @@ class Selecter
       @selection[@selected] = +node.id
 
       css_selection_id = '#selection-' + @selected
-      $(css_selection_id + ' .id .value').text(node.id)
-      $(css_selection_id + ' .name .value').text(node.name)
+      $("#{css_selection_id} .id .value").text(node.id)
+      $("#{css_selection_id} .name .value").text(node.name)
       do $(css_selection_id).fadeIn
 
       if @selected is 2
