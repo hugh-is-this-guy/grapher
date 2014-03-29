@@ -256,8 +256,8 @@ class Searcher
   constructor: (@graph) ->
     self = @
     $('#name-search').keyup (e) ->
-      self.search($.trim($(@).val()))
-      #if e.keyCode == 13
+      if e.keyCode == 13
+        self.search($.trim($(@).val()))
 
 
 
