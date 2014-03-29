@@ -35,9 +35,19 @@ block content
               span.title Name:
               span.value
             .links
-              a(id="relations-1" class="relations" href="#!") neighbours
+              a(id="relations-1" class="relations" href="#!") relations
+              br
+              span.title Min:
+              span.value 0
+              br
+              input(type="range" id="minlinks-1" class="minlinks" name="minimum" min="0" max="50" value="0")
+
+          br
 
           a(id="paths" href="#!") paths
+
+          br
+          br
 
           #selection-2.selection
             h4 Selection 2
@@ -50,7 +60,13 @@ block content
               span.title Name:
               span.value
             .links
-              a(id="relations-2" class="relations" href="#!") neighbours
+              a(id="relations-2" class="relations" href="#!") relations
+              br
+              span.title Min:
+              span.value 0
+              br
+              input(type="range" id="minlinks-2" class="minlinks" name="minimum" min="0" max="50" value="0")
+
 
 
     #about

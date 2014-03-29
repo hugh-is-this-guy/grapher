@@ -15,6 +15,7 @@ class Graph
     @force = d3.layout.force()
       .size [@width, @height]
       .charge -750
+      .gravity 0.25
       .on 'tick', @tick.bind @
       .linkDistance (d) ->
         (Math.sqrt ((1 / d.weight) * 10000)) + 5
@@ -180,10 +181,10 @@ class Searcher
   # Sends request to REST service for nodes matching user input.
   search: (search_term) ->
     if @last_term != search_term
-      @clearResults()
+      do @clearResults
       
       #loading
-      if search_term != ''
+      if search_term
           
         self = @
         $.get(
@@ -256,11 +257,24 @@ class Selecter
     self = @
     do $('.selection, #paths').hide
     $(".relations").click ->
-      selection_id = +($(@).attr("id").split("-")[1])
-      self.showRelations selection_id
+      selection = +($(@).attr("id").split("-")[1])
+      self.showRelations selection
 
     $("#paths").click ->
       do self.showPaths
+
+    $(".minlinks").change (e)->
+      do e.preventDefault
+      selection  = +($(@).attr("id").split("-")[1])
+      minlinks   = +($(@).val())
+
+      $("#selection-#{selection} .links .value").text(minlinks);
+      console.log "Range change! #{minlinks}"
+
+    $(".minlinks").mouseup ->
+      selection  = +($(@).attr("id").split("-")[1])
+      self.showRelations selection
+
 
 
 
@@ -299,14 +313,15 @@ class Selecter
 
   showRelations: (selection) ->
     css_id = "#selection-" + selection
-    id = +($(css_id + " .id .value").text())
-    name = $(css_id + " .name .value").text()
+    id   = +($(css_id + " .id .value").text())
+    name = $("#{css_id} .name .value").text()
+    min  = $("#{css_id} .links .minlinks").val()
     root = new Node id, name
     self = @
 
     # Get neighbours for selected node
     $.get(
-      "/nodes/relations/#{root.id}"
+      "/nodes/relations/#{root.id}/#{min}"
       (data) ->
         # Callback function
         nodes = [root]

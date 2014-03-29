@@ -92,12 +92,20 @@ getNodes = (q, callback, params) ->
 exports.getRelations = (req, res) ->
   console.log "Get all relations for node #{req.params.id}"
 
+  params =
+    id  : +req.params.id
+
+  optional = ""
+
+  if req.params.minimum
+   optional = " AND r.weight >= { minimum } "
+   params.minimum = +req.params.minimum
+
   query = "MATCH (n)-[r]-(f) 
-            WHERE n.id = { id } 
+            WHERE n.id = { id } #{optional}
             RETURN r.weight, f.id, f.name 
             ORDER BY r.weight DESC;"
-  params =
-    id: +req.params.id
+
 
   callback = (response) ->
     res.json response
