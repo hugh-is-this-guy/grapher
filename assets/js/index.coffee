@@ -27,6 +27,13 @@ class Graph
       .attr 'width', @width
       .attr 'height', @height
 
+    # Used for random placement of nodes when first added to graph
+    @generateX = ->
+      Math.random() * 800
+
+    @generateY = ->
+      Math.random() * 500
+
   selectNode: (node, i) ->
     d3.select '#node-' + node.id
       .classed 'selection-' + i, true
@@ -54,8 +61,8 @@ class Graph
     # Adds new node to the dataset and redraws graph, or highlights it if 
     # already there
     if not ((n for n in @nodes when +n.id is +new_node.id)[0])?
-      new_node.x = generateX()
-      new_node.y = generateY()
+      new_node.x = @generateX()
+      new_node.y = @generateY()
       @nodes.push new_node
       do @draw
 
@@ -163,12 +170,7 @@ class Graph
         self.clicked_once = true
 
 
-  # Used for random placement of nodes when first added to graph
-  generateX = ->
-    Math.random() * 800
-
-  generateY = ->
-    Math.random() * 500
+  
 
 
 
