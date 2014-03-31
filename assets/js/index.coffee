@@ -388,6 +388,8 @@ class Selecter
     to   = +($("#selection-2 .id .value").text())
     self = @
 
+    do $(".range").hide
+
     displayPaths = (from, to) ->
       (data) ->
         # Callback function
