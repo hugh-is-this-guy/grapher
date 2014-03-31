@@ -276,13 +276,13 @@ class Selecter
     $("#paths").click ->
       do self.showPaths
 
+    do $(".range").hide
+
     $(".minlinks").change (e)->
       do e.preventDefault
       selection  = +($(@).attr("id").split("-")[1])
       minlinks   = +($(@).val())
-
       $("#selection-#{selection} .links .value").text(minlinks);
-      console.log "Range change! #{minlinks}"
 
     $(".minlinks").mouseup ->
       selection  = +($(@).attr("id").split("-")[1])
@@ -302,6 +302,8 @@ class Selecter
       css_selection_id = '#selection-' + @selected
       $("#{css_selection_id} .id .value").text(node.id)
       $("#{css_selection_id} .name .value").text(node.name)
+      $("#{css_selection_id} .links .value").text(0)
+      $("#{css_selection_id} .links .minlinks").val(0)
       do $(css_selection_id).fadeIn
 
       if @selected is 2
@@ -321,6 +323,7 @@ class Selecter
       do $("#paths").fadeOut
       $(".minlinks").val(0)
       $(".links .value").text(0)
+      do $(".range").hide
 
       @selection = []
     @selected = 2
@@ -328,11 +331,17 @@ class Selecter
 
   showRelations: (selection) ->
     css_id = "#selection-" + selection
-    id   = +($(css_id + " .id .value").text())
+    id   = +($("#{css_id} .id .value").text())
     name = $("#{css_id} .name .value").text()
     min  = $("#{css_id} .links .minlinks").val()
     root = new Node id, name
     self = @
+
+    other_selection = if +selection is 2 then 1 else 2
+    other_css_id = "#selection-" + other_selection
+    do $("#{css_id} .links .range").fadeIn
+    do $("#{other_css_id} .links .range").hide
+
 
     # Get neighbours for selected node
     $.get(
@@ -351,8 +360,7 @@ class Selecter
 
 
         #If the user has selected another node, add it to the dataset if not there already.
-        other_selection = if +selection is 2 then 1 else 2
-        other_css_id = "#selection-" + other_selection
+        
         text = $(other_css_id + " .id .value").text()
         other_id = if text is "" then undefined else +text
 
