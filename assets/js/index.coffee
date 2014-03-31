@@ -227,8 +227,6 @@ class Searcher
     self = @
     do @clearResults
 
-    console.log "Add"
-    
     if data.meta.number_of_people is 0
       $('#results ul').append(
         $('<li>')
@@ -273,13 +271,12 @@ class Selecter
       selection = +($(@).attr("id").split("-")[1])
       self.showRelations selection
 
-    $("#paths").click ->
+    $("#show-paths").click ->
       do self.showPaths
 
     do $(".range").hide
 
-    $(".minlinks").change (e)->
-      do e.preventDefault
+    $(".minlinks").change ->
       selection  = +($(@).attr("id").split("-")[1])
       minlinks   = +($(@).val())
       $("#selection-#{selection} .links .value").text(minlinks);
@@ -288,6 +285,12 @@ class Selecter
       selection  = +($(@).attr("id").split("-")[1])
       self.showRelations selection
 
+    $("#numofpaths").change ->
+      minPaths = +($(@).val())
+      $("#paths .range .value").text(minPaths);
+
+    $("#numofpaths").mouseup ->
+      do self.showPaths
 
 
 
@@ -341,6 +344,9 @@ class Selecter
     other_css_id = "#selection-" + other_selection
     do $("#{css_id} .links .range").fadeIn
     do $("#{other_css_id} .links .range").hide
+    do $("#paths .range").hide
+    $("#paths .range #numofpaths").val 15
+    $("#paths .range .value").text "15"
 
 
     # Get neighbours for selected node
@@ -384,12 +390,16 @@ class Selecter
 
   
   showPaths: ->
-    from = +($("#selection-1 .id .value").text())
-    to   = +($("#selection-2 .id .value").text())
-    self = @
+    from  = +($("#selection-1 .id .value").text())
+    to    = +($("#selection-2 .id .value").text())
+    max   = +($("#paths .range .value").text())
+    self  = @
 
-    do $(".range").hide
+    do $(".links .range").hide
+    do $("#paths .range").fadeIn
 
+
+    # Callback function
     displayPaths = (from, to) ->
       (data) ->
         # Callback function
@@ -417,7 +427,7 @@ class Selecter
         else
           alert "No paths of length less than three :("
 
-    $.get "/paths/#{from}/#{to}", displayPaths(from, to)
+    $.get "/paths/#{from}/#{to}/#{max}", displayPaths(from, to)
 
 
 

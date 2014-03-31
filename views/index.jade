@@ -29,21 +29,28 @@ block content
             svg(height='30' width='30')
               circle(cx='15' cy='15' r='15' fill='#1f77b4')
             .id
-              span.title Id:
+              span.title.inline-title Id:
               span.value
             .name
-              span.title Name:
+              span.title.inline-title Name:
               span.value
             .links
               a(id="relations-1" class="relations" href="#!") relations
               .range
-                span.title Min:
+                span.title Minimum Weight:
+                br
                 span.value 0
                 br
                 input(type="range" id="minlinks-1" class="minlinks" name="minimum" min="0" max="50" value="0")
 
           br
-          a(id="paths" href="#!") paths
+          #paths
+            a(id="show-paths" href="#!") paths
+            .range
+              span.title Maximum Number of Paths:
+              br
+              span.value 15
+              input(type="range" id="numofpaths" name="numofpaths" min="1" max="15" value="15")
           br
           br
 
@@ -52,17 +59,17 @@ block content
             svg(height='30' width='30')
               circle(cx='15' cy='15' r='15' fill='#9467bd')
             .id
-              span.title Id: 
+              span.title.inline-title Id: 
               span.value
             .name
-              span.title Name:
+              span.title.inline-title Name:
               span.value
             .links
               a(id="relations-2" class="relations" href="#!") relations
               .range
-                span.title Min:
-                span.value 0
+                span.title Minimum Weight:
                 br
+                span.value 0
                 input(type="range" id="minlinks-2" class="minlinks" name="minimum" min="0" max="50" value="0")
 
 
