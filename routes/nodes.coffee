@@ -152,7 +152,10 @@ getRelations = (q, callback, params) ->
 exports.getPaths = (req, res) ->
   from  = +req.params.from
   to    = +req.params.to
-  console.log "Get path from #{from} to #{to}"
+  max   = +req.params.max || 15
+
+  console.log "Get maximum #{max} paths from #{from} to #{to}"
+
   query = "MATCH (from {id: { from }}), (to { id: { to } }) 
             MATCH p = (from)-[:Knows*0..3]-(to)
             WITH extract(n in nodes(p)| n.id) as ids,
@@ -162,7 +165,7 @@ exports.getPaths = (req, res) ->
             RETURN ids, names, weights, length,
                    reduce(total=0, w in weights | total + w) as cost
             ORDER BY length, cost / length DESC
-            LIMIT 15"
+            LIMIT #{max}"
   params =
     from: from
     to  : to

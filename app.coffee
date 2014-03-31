@@ -25,7 +25,7 @@ app.get "/nodes", nodes.findAll
 app.get "/nodes/:id", nodes.getNode
 app.get "/nodes/search/name/:name", nodes.findByName
 app.get "/nodes/relations/:id/:minimum?", nodes.getRelations
-app.get "/paths/:from/:to", nodes.getPaths
+app.get "/paths/:from/:to/:max?", nodes.getPaths
 
 
 app.listen port, ->
