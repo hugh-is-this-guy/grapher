@@ -269,9 +269,14 @@ class Selecter
     @selection = []
     self = @
     do $('.selection, #paths').hide
+
     $(".relations").click ->
       selection = +($(@).attr("id").split("-")[1])
       self.showRelations selection
+
+    $(".showcluster").click ->
+      selection = +($(@).attr("id").split("-")[1])
+      self.showCluster selection
 
     $("#show-paths").click ->
       do self.showPaths
@@ -431,6 +436,18 @@ class Selecter
 
     $.get "/paths/#{from}/#{to}/#{max}", displayPaths(from, to)
 
+  
+  showCluster: (selection) ->
+    css_id = "#selection-" + selection
+    id   = +($("#{css_id} .id .value").text())
+    name = $("#{css_id} .name .value").text()
+    root = new Node id, name
+
+    $.get(
+      "/cluster/#{root.id}/"
+      (data) ->
+        console.log JSON.stringify data
+    )
 
 
 

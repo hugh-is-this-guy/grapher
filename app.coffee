@@ -26,6 +26,7 @@ app.get "/nodes/:id", nodes.getNode
 app.get "/nodes/search/name/:name", nodes.findByName
 app.get "/nodes/relations/:id/:minimum?", nodes.getRelations
 app.get "/paths/:from/:to/:max?", nodes.getPaths
+app.get "/cluster/:id", nodes.getCluster
 
 
 app.listen port, ->
