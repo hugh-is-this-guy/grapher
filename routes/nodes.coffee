@@ -440,8 +440,7 @@ calculateCoefficient = (id, callback) ->
 getCluster = (id, callback) ->
   console.log "Getting cluster"
 
-  query = "MATCH (n:Cluster#{id})
-            MATCH p=(from:Cluster#{id})-[r]->(to:Cluster#{id})
+  query = "MATCH p=(from:Cluster#{id})-[r]->(to:Cluster#{id})
             RETURN from.id, from.name, to.id, to.name, r.weight"
 
   message = {
@@ -449,7 +448,8 @@ getCluster = (id, callback) ->
   }
   request.post(dbURL).send(message).end (neo4jRes) ->
     results = JSON.parse neo4jRes.text
-    console.log results
+    console.log results.data
+
 
     response = 
       rootId        : id

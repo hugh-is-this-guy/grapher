@@ -100,19 +100,6 @@ class Graph
 
     do @force.stop
 
-    @link = @link.data @links, (d) ->
-      self.links.indexOf d
-
-    @link.enter().insert 'line', '.node'
-      .attr 'class', 'link'
-      .style 'stroke-width', (d) -> 
-        Math.sqrt d.weight
-      .append 'title'
-        .text (d) -> 
-          "#{d.source.name} -- #{d.target.name} (#{d.weight})"
-
-    @link.exit().remove()
-
     @node = @node.data @nodes, (d) ->
       d.id
 
@@ -129,6 +116,19 @@ class Graph
       .append 'title'
         .text (d) -> 
           "#{d.id} - #{d.name}"
+
+    @link = @link.data @links, (d) ->
+      self.links.indexOf d
+
+    @link.enter().insert 'line', '.node'
+      .attr 'class', 'link'
+      .style 'stroke-width', (d) -> 
+        Math.sqrt d.weight
+      .append 'title'
+        .text (d) -> 
+          "#{d.source.name} -- #{d.target.name} (#{d.weight})"
+
+    @link.exit().remove()
 
     @force.nodes @nodes
           .links @links
@@ -442,11 +442,45 @@ class Selecter
     id   = +($("#{css_id} .id .value").text())
     name = $("#{css_id} .name .value").text()
     root = new Node id, name
+    self = @
 
     $.get(
       "/cluster/#{root.id}/"
       (data) ->
-        console.log JSON.stringify data
+        console.log data
+        if data.relationships.length > 0
+          nodes = []
+          links = []
+          for rel in data.relationships
+            from = (n for n in nodes when n.id is rel.from.id)[0]
+            if not from?
+              from = new Node rel.from.id, rel.from.name
+
+            to = (n for n in nodes when n.id is rel.to.id)[0]
+            if not to?
+              to   = new Node rel.to.id, rel.to.name
+
+            if not Node.isNodeInList from, nodes
+              nodes.push from 
+              console.log  "from: id: #{from.id} name: #{from.id}"
+
+            if not Node.isNodeInList to, nodes
+              nodes.push to
+              console.log  "to: id: #{to.id} name: #{to.id}"
+
+
+            link = new Link from, to, +rel.weight
+            links.push link if not Link.isLinkInList link, links
+
+          console.log "Nodes"
+          console.log nodes
+          console.log "Links"
+          console.log links
+
+          # Draw graph
+          self.graph.drawGraph nodes, links
+        else
+          alert "Community could not be found for selected node. :("
     )
 
 
