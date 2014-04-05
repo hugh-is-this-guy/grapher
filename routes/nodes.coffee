@@ -228,19 +228,7 @@ getPaths = (q, callback, params) ->
 
 
 
-
-
-
-
-
-
 #---------------THIS WAY DANGER LIES---------------#
-
-
-
-
-
-
 
 exports.getCluster = (req, res) ->
   id    = +req.params.id
@@ -250,9 +238,6 @@ exports.getCluster = (req, res) ->
       console.log "Not clustered"
       calculateCluster id, ->
         getCluster id, (response) ->
-          console.log "######################CLUSTERED!!######################################"
-          console.log response
-          console.log "######################CLUSTERED!!######################################"
           res.json response
       return
     else
@@ -347,37 +332,11 @@ calculateCluster = (rootId, callback) ->
         if id not in rejected
           nextId = id
           break
-      nextId
+      console.log "Next: #{nextId}"
+      callback nextId
 
 
-  calculateCoefficient = (callback) ->#
-    console.log "Calculating coefficient"
-
-    calculateTriples = (links) ->
-      factorial = (n) ->
-        return 0 if n < 0
-        return 1 if n == 0 or n == 1
-        return n * factorial(n - 1)
-
-      triples = (factorial links) / (2 * (factorial( links - 2 )))
-
-
-    query = "MATCH p=(a:#{label})--(:#{label})--(:#{label})--(a) 
-              WITH Count(p) AS Triangles
-              MATCH (:#{label})-[r]->(:#{label})
-              RETURN Triangles, Count(r) AS Links"
-
-    message = {
-      query : query
-    }
-
-    request.post(dbURL).send(message).end (neo4jRes) ->
-      results = JSON.parse neo4jRes.text
-      [triangles, links] = results.data[0]
-      triples = calculateTriples links
-      console.log "Triangles: #{triangles}, Triples: #{triples}"
-
-      callback triangles / triples
+  
 
 
   initialiseCluster = (callback) ->
@@ -393,6 +352,7 @@ calculateCluster = (rootId, callback) ->
       continueLoop = ->
         console.log "Getting init node"
         getNextNode (id) ->
+          console.log "Got"
           applyLabel id, label, ->
             if --count
               do continueLoop 
@@ -423,7 +383,7 @@ calculateCluster = (rootId, callback) ->
       getNextNode (id) ->
         console.log "Next node: #{id}"
         applyLabel id, label, ->
-          calculateCoefficient (newCoefficient) ->
+          calculateCoefficient rootId, (newCoefficient) ->
             console.log "Coefficient = #{newCoefficient}"
             if newCoefficient >= coefficient
               console.log "Accepted! :)"
@@ -441,8 +401,75 @@ calculateCluster = (rootId, callback) ->
     do continueLoop
 
 
+calculateCoefficient = (id, callback) ->
+    console.log "Calculating coefficient"
+
+    label = "Cluster#{id}"
+
+    calculateTriples = (links) ->
+      factorial = (n) ->
+        return 0 if n < 0
+        return 1 if n == 0 or n == 1
+        return n * factorial(n - 1)
+
+      triples = (factorial links) / (2 * (factorial( links - 2 )))
+
+
+    query = "MATCH p=(a:#{label})--(:#{label})--(:#{label})--(a) 
+              WITH Count(p) AS Triangles
+              MATCH (:#{label})-[r]->(:#{label})
+              RETURN Triangles, Count(r) AS Links"
+
+    message = {
+      query : query
+    }
+
+    console.log query
+
+    request.post(dbURL).send(message).end (neo4jRes) ->
+      results = JSON.parse neo4jRes.text
+
+      console.log results
+
+      [triangles, links] = results.data[0]
+      triples = calculateTriples links
+      console.log "Triangles: #{triangles}, Triples: #{triples}"
+
+      callback triangles / triples
+
 getCluster = (id, callback) ->
   console.log "Getting cluster"
-  callback {
-    pleez: "You can haz cluster"
+
+  query = "MATCH (n:Cluster#{id})
+            MATCH p=(from:Cluster#{id})-[r]->(to:Cluster#{id})
+            RETURN from.id, from.name, to.id, to.name, r.weight"
+
+  message = {
+    query: query
   }
+  request.post(dbURL).send(message).end (neo4jRes) ->
+    results = JSON.parse neo4jRes.text
+    console.log results
+
+    response = 
+      rootId        : id
+      relationships : []
+
+    for result in results.data
+      console.log "relationship"
+      relationship =
+        from :
+          id    : result[0]
+          name  : result[1]
+        
+        to  :
+          id    : result[2]
+          name  : result[3]
+        
+        weight  : result[4]
+
+      response.relationships.push relationship
+
+    calculateCoefficient id, (coefficient) ->
+      response.coefficient = coefficient
+      callback response
