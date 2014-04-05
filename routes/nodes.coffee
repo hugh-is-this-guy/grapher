@@ -309,7 +309,7 @@ calculateCluster = (rootId, callback) ->
     query = "MATCH (n:Cluster#{rootId})-[r]-(f)
               WHERE not 'Cluster#{rootId}' in LABELS(f)
               RETURN f.id
-              ORDER BY r.weight
+              ORDER BY r.weight DESC
               LIMIT {limit}"
 
     params = {
