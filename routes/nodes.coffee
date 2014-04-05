@@ -242,38 +242,24 @@ getPaths = (q, callback, params) ->
 
 
 
-getName = (id, callback) ->
-  params = {
-    id: id
-  }
-  query = "MATCH (n {id: {id}})
-            RETURN n.name"
-
-  message = {
-    query : query
-    params: params
-  }
-
-  request.post(dbURL).send(message).end (neo4jRes) ->
-    result = JSON.parse neo4jRes.text
-    name   = result.data[0][0]
-    callback name
-
-
-
 exports.getCluster = (req, res) ->
   id    = +req.params.id
   hasCluster id, (clustered) ->
 
     if not clustered
       console.log "Not clustered"
-      cluster id, ->
+      calculateCluster id, ->
         getCluster id, (response) ->
+          console.log "######################CLUSTERED!!######################################"
+          console.log response
+          console.log "######################CLUSTERED!!######################################"
           res.json response
+      return
     else
       console.log "Clustered"
       getCluster id, (response) ->
         res.json response
+      return
 
 
 
@@ -290,7 +276,7 @@ hasCluster = (id, callback) ->
     callback result.data[0][0] > 0
 
 
-cluster = (rootId, callback) ->
+calculateCluster = (rootId, callback) ->
   console.log "Clustering"
 
 
@@ -310,6 +296,24 @@ cluster = (rootId, callback) ->
 
     request.post(dbURL).send(message).end ->
       console.log "Label applied"
+      do callback
+
+  removeLabel = (id, label, callback) ->
+    console.log "Removing label #{label} to node #{id}"
+    query = "MATCH (n {id: {id}})
+              REMOVE n:#{label}"
+
+    params = {
+      id    : id
+    }
+
+    message = {
+      query : query
+      params: params
+    }
+
+    request.post(dbURL).send(message).end ->
+      console.log "Label removed"
       do callback
 
 
@@ -337,16 +341,43 @@ cluster = (rootId, callback) ->
       results = JSON.parse neo4jRes.text
 
       # Return first node not in rejected list
+      nextId = 0
       for result in results.data
         id = result[0]
         if id not in rejected
-          callback id
+          nextId = id
           break
+      nextId
 
 
-  calculateCoefficient = (callback) ->
+  calculateCoefficient = (callback) ->#
     console.log "Calculating coefficient"
-    callback 0.5
+
+    calculateTriples = (links) ->
+      factorial = (n) ->
+        return 0 if n < 0
+        return 1 if n == 0 or n == 1
+        return n * factorial(n - 1)
+
+      triples = (factorial links) / (2 * (factorial( links - 2 )))
+
+
+    query = "MATCH p=(a:#{label})--(:#{label})--(:#{label})--(a) 
+              WITH Count(p) AS Triangles
+              MATCH (:#{label})-[r]->(:#{label})
+              RETURN Triangles, Count(r) AS Links"
+
+    message = {
+      query : query
+    }
+
+    request.post(dbURL).send(message).end (neo4jRes) ->
+      results = JSON.parse neo4jRes.text
+      [triangles, links] = results.data[0]
+      triples = calculateTriples links
+      console.log "Triangles: #{triangles}, Triples: #{triples}"
+
+      callback triangles / triples
 
 
   initialiseCluster = (callback) ->
@@ -373,7 +404,7 @@ cluster = (rootId, callback) ->
 
   i = 0
 
-  coefficient = 0
+  coefficient = 0.1
   cluster     = [rootId]
   rejected    = []
 
@@ -383,6 +414,12 @@ cluster = (rootId, callback) ->
     console.log "Init-ed"
 
     continueLoop = ->
+      if ++i > 10
+        console.log "Done! i = #{i}"
+        do callback
+        return
+
+
       getNextNode (id) ->
         console.log "Next node: #{id}"
         applyLabel id, label, ->
@@ -392,16 +429,14 @@ cluster = (rootId, callback) ->
               console.log "Accepted! :)"
               cluster.push id
               coefficient = newCoefficient
+              do continueLoop
             else
               console.log "Rejected :("
               rejected.push id
-              removeLabel label, id
+              removeLabel id, label, ->
+                do continueLoop
 
-            if ++i < 5
-              do continueLoop
-            else
-              console.log "Done! i = #{i}"
-              do callback
+            
   
     do continueLoop
 
