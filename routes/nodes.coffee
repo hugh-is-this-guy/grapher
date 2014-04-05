@@ -1,5 +1,4 @@
 request = require("superagent")
-asynch  = require("asynch")
 
 dbURL = process.env.GRAPHENEDB_URL or "http://localhost:7474"
 dbURL += "/db/data/cypher"

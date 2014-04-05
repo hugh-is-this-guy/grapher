@@ -442,6 +442,9 @@ class Selecter
     id   = +($("#{css_id} .id .value").text())
     name = $("#{css_id} .name .value").text()
     root = new Node id, name
+
+    other_selection = if +selection is 2 then 1 else 2
+    other_id = +($("#{css_id} .id .value").text())
     self = @
 
     $.get(
@@ -472,13 +475,23 @@ class Selecter
             link = new Link from, to, +rel.weight
             links.push link if not Link.isLinkInList link, links
 
-          console.log "Nodes"
-          console.log nodes
-          console.log "Links"
-          console.log links
+
+          # If there is another selection
+          if other_id?
+            other_css_id = "#selection-" + other_selection
+            other_name = $(other_css_id + " .name .value").text()
+            other_node = new Node other_id, other_name
+            
+            # If other selection was in nodes
+            if not ((n for n in nodes when n.id is other_node.id)[0])?
+              nodes.push other_node
 
           # Draw graph
           self.graph.drawGraph nodes, links
+          self.graph.selectNode id, selection
+          if other_id?
+            self.graph.selectNode other_id, other_selection
+    
         else
           alert "Community could not be found for selected node. :("
     )
