@@ -250,8 +250,8 @@ getName = (id, callback) ->
             RETURN n.name"
 
   message = {
-    params: params
     query : query
+    params: params
   }
 
   request.post(dbURL).send(message).end (neo4jRes) ->
@@ -263,198 +263,151 @@ getName = (id, callback) ->
 
 exports.getCluster = (req, res) ->
   id    = +req.params.id
+  hasCluster id, (clustered) ->
 
-  
-  callback = (name) ->
-    root  = new Node id, name
-
-    graph = new Graph root
-    graph.cluster (nodes, links) ->
-      res.json {nodes: nodes, links: links}
-  
-
-  getName id, callback
-
-
-
-class Graph
-  constructor: (@root) ->
-    @nodes = [root]
-    @links = []
-    @rejected = []
-    self = @
-
-    @factorial = (n) ->
-      return 0 if n < 0
-      return 1 if n == 0 or n == 1
-      return n * @factorial(n - 1)
-
-    @permutations = (n) ->
-      top = @factorial n
-      bottom = (@factorial(n - 3) * 6)
-      top / bottom
-
-    @getStrongestNeighbour = (n, skip, callback) ->
-      params =
-        id    : n.id
-        skip  : skip
-
-      query = "MATCH (a { id: {id}})-[r]-(b)
-        RETURN b.id, b.name, r.weight
-        ORDER BY r.weight DESC
-        SKIP {skip}
-        LIMIT 1"
-
-      message = {
-        params: params
-        query : query
-      }
-
-      request.post(dbURL).send(message).end (neo4jRes) ->
-        result    = JSON.parse neo4jRes.text
-        id        = result.data[0][0]
-        name      = result.data[0][1]
-        strength  = result.data[0][2]
-        node      = new Node id, name
-        callback node, strength
+    if not clustered
+      console.log "Not clustered"
+      cluster id, ->
+        getCluster id, (response) ->
+          res.json response
+    else
+      console.log "Clustered"
+      getCluster id, (response) ->
+        res.json response
 
 
-    @getNextNode = (callback) ->
-      friendof      = 0
-      i             = 0
-      nextNode      = null
-      nextstrength  = 0
-      skip          = 0
 
+hasCluster = (id, callback) ->
+
+  query = "MATCH (n:Cluster#{id}) RETURN COUNT(n)"
+
+  message = {
+    query : query
+  }
+
+  request.post(dbURL).send(message).end (neo4jRes) ->
+    result = JSON.parse neo4jRes.text
+    callback result.data[0][0] > 0
+
+
+cluster = (rootId, callback) ->
+  console.log "Clustering"
+
+
+  applyLabel = (id, label, callback) ->
+    console.log "Applying label #{label} to node #{id}"
+    query = "MATCH (n {id: {id}})
+              SET n:#{label}"
+
+    params = {
+      id    : id
+    }
+
+    message = {
+      query : query
+      params: params
+    }
+
+    request.post(dbURL).send(message).end ->
+      console.log "Label applied"
+      do callback
+
+
+
+
+  getNextNode = (callback) ->
+    console.log "Getting next node"
+
+    query = "MATCH (n:Cluster#{rootId})-[r]-(f)
+              WHERE not 'Cluster#{rootId}' in LABELS(f)
+              RETURN f.id
+              ORDER BY r.weight
+              LIMIT {limit}"
+
+    params = {
+      limit: rejected.length + 2
+    }
+
+    message = {
+      query : query
+      params: params
+    }
+
+    request.post(dbURL).send(message).end (neo4jRes)->
+      results = JSON.parse neo4jRes.text
+
+      # Return first node not in rejected list
+      for result in results.data
+        id = result[0]
+        if id not in rejected
+          callback id
+          break
+
+
+  calculateCoefficient = (callback) ->
+    console.log "Calculating coefficient"
+    callback 0.5
+
+
+  initialiseCluster = (callback) ->
+    console.log "Init-ing"
+
+    # Add cluster label to root
+    applyLabel rootId, label, ->
+      console.log "Label applied to root"
+    
+      # As cluster coefficient can only be calc'ed on clusters 
+      # of three or more, add two nodes to cluster
+      count = 2
       continueLoop = ->
-        if i == self.nodes.length
-          callback nextNode, self.nodes[friendof], nextstrength
-          return
+        console.log "Getting init node"
+        getNextNode (id) ->
+          applyLabel id, label, ->
+            if --count
+              do continueLoop 
+            else
+              do callback
 
-
-        self.getStrongestNeighbour self.nodes[i], skip, (node, strength) ->
-          # If returned node already in list, get next strongest
-          if not node?
-            do continueLoop
-            return
-          if ((n for n in self.nodes when n.id is node.id)[0])? or ((n for n in self.rejected when n.id is node.id)[0])?
-            skip++
-            do continueLoop
-            return
-
-          skip = 0
-
-          if strength > nextstrength
-            nextstrength  = strength
-            nextNode      = node
-            friendof      = i
-
-          
-          i++
-          do continueLoop
-          return
-
-      # Start loop
       do continueLoop
 
 
+  i = 0
 
-    @getCoefficientVals = (node, callback) ->
-      query = "MATCH (a { id: {id}})--(b)
-                WITH a, count(DISTINCT b) AS triplets
-                MATCH (a)--()-[r]-()--(a)
-                RETURN triplets, count(DISTINCT r) AS triangles"      
+  coefficient = 0
+  cluster     = [rootId]
+  rejected    = []
 
-      params = {
-        id: node.id
-      }
+  label = "Cluster#{rootId}"
 
-
-      message = {
-        query   : query
-        params  : params
-      }
-
-      request.post(dbURL).send(message).end (neo4jRes) ->
-        result    = JSON.parse neo4jRes.text
-        if not result.data? or result.data.length == 0
-          callback 0, 0
-          return
-        triplets  = result.data[0][0] 
-        triangles = result.data[0][1]
-        callback triplets, triangles
-
-
-
-    @calcCoefficient = (nodes, callback) ->
-      totalTriplets   = 0
-      totalTriangles  = 0
-
-      i    = 0
-      self = @
-
-      continueLoop = ->
-        if i == nodes.length
-          coefficient = totalTriangles / totalTriplets
-          callback coefficient
-          return
-        self.getCoefficientVals nodes[i], (triplets, triangles) ->
-          triplets = if triplets then self.permutations triplets else triplets
-          totalTriplets   += triplets
-          totalTriangles  += triangles
-          
-          i++
-          do continueLoop
-          return
-
-      do continueLoop        
-
-
-
-
-  cluster: (callback) ->
-    self  = @
-
-    coefficient = 0
-    count       = 0
-    limit       = 30
-
+  initialiseCluster ->
+    console.log "Init-ed"
 
     continueLoop = ->
+      getNextNode (id) ->
+        console.log "Next node: #{id}"
+        applyLabel id, label, ->
+          calculateCoefficient (newCoefficient) ->
+            console.log "Coefficient = #{newCoefficient}"
+            if newCoefficient >= coefficient
+              console.log "Accepted! :)"
+              cluster.push id
+              coefficient = newCoefficient
+            else
+              console.log "Rejected :("
+              rejected.push id
+              removeLabel label, id
 
-      if count == limit 
-        callback self.nodes, self.links
-        return
-      self.getNextNode (newnode, friendof, strength) ->
-        newnodes = (n for n in self.nodes)
-        newnodes.push newnode
-
-        self.calcCoefficient newnodes, (newcoefficient) ->
-          if newcoefficient >= coefficient
-            coefficient = newcoefficient
-            self.nodes = newnodes
-            self.links.push new Link newnode, friendof, strength
-          else
-            self.rejected.push newnode
-          count++
-          console.log "count: #{count}"
-          do continueLoop
-          return
-
+            if ++i < 5
+              do continueLoop
+            else
+              console.log "Done! i = #{i}"
+              do callback
+  
     do continueLoop
 
 
-
-
-
-class Node
-  constructor: (@id, @name) ->
-
-
-
-class Link
-  constructor: (source, target, @weight) ->
-    # Source is always the lower of the two ids, to aid in the comparisson of
-    # two links.
-    @source = if source.id < target.id then source else target
-    @target = if source.id > target.id then source else target
+getCluster = (id, callback) ->
+  console.log "Getting cluster"
+  callback {
+    pleez: "You can haz cluster"
+  }
