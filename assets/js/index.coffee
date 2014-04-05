@@ -444,13 +444,15 @@ class Selecter
     root = new Node id, name
 
     other_selection = if +selection is 2 then 1 else 2
-    other_id = +($("#{css_id} .id .value").text())
+    other_css_id = "#selection-" + other_selection
+    text = $(other_css_id + " .id .value").text()
+    other_id = if text is "" then undefined else +text
+    
     self = @
 
     $.get(
       "/cluster/#{root.id}/"
       (data) ->
-        console.log data
         if data.relationships.length > 0
           nodes = []
           links = []
@@ -465,11 +467,9 @@ class Selecter
 
             if not Node.isNodeInList from, nodes
               nodes.push from 
-              console.log  "from: id: #{from.id} name: #{from.id}"
 
             if not Node.isNodeInList to, nodes
               nodes.push to
-              console.log  "to: id: #{to.id} name: #{to.id}"
 
 
             link = new Link from, to, +rel.weight
@@ -481,7 +481,7 @@ class Selecter
             other_css_id = "#selection-" + other_selection
             other_name = $(other_css_id + " .name .value").text()
             other_node = new Node other_id, other_name
-            
+
             # If other selection was in nodes
             if not ((n for n in nodes when n.id is other_node.id)[0])?
               nodes.push other_node

@@ -331,7 +331,6 @@ calculateCluster = (rootId, callback) ->
         if id not in rejected
           nextId = id
           break
-      console.log "Next: #{nextId}"
       callback nextId
 
 
@@ -351,6 +350,9 @@ calculateCluster = (rootId, callback) ->
       continueLoop = ->
         console.log "Getting init node"
         getNextNode (id) ->
+          if not id
+            do callback
+            return
           console.log "Got"
           applyLabel id, label, ->
             if --count
@@ -380,6 +382,9 @@ calculateCluster = (rootId, callback) ->
 
 
       getNextNode (id) ->
+        if not id
+          do callback
+          return
         console.log "Next node: #{id}"
         applyLabel id, label, ->
           calculateCoefficient rootId, (newCoefficient) ->
@@ -423,16 +428,11 @@ calculateCoefficient = (id, callback) ->
       query : query
     }
 
-    console.log query
-
     request.post(dbURL).send(message).end (neo4jRes) ->
       results = JSON.parse neo4jRes.text
 
-      console.log results
-
       [triangles, links] = results.data[0]
       triples = calculateTriples links
-      console.log "Triangles: #{triangles}, Triples: #{triples}"
 
       callback triangles / triples
 
@@ -447,15 +447,12 @@ getCluster = (id, callback) ->
   }
   request.post(dbURL).send(message).end (neo4jRes) ->
     results = JSON.parse neo4jRes.text
-    console.log results.data
-
 
     response = 
       rootId        : id
       relationships : []
 
     for result in results.data
-      console.log "relationship"
       relationship =
         from :
           id    : result[0]
