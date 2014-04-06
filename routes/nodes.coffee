@@ -266,7 +266,6 @@ calculateCluster = (rootId, callback) ->
 
 
   applyLabel = (id, label, callback) ->
-    console.log "Applying label #{label} to node #{id}"
     query = "MATCH (n {id: {id}})
               SET n:#{label}"
 

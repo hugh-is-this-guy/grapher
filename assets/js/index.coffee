@@ -8,6 +8,14 @@ class Graph
       .attr 'width', @width
       .attr 'height', @height
 
+    @graphlabel = @svg.append "text"
+      .attr {
+        x: 60
+        y: 30
+        "font-size": "10pt"
+        class: "graph-label"
+      }
+
     @node = @svg.selectAll '.node'
 
     @link = @svg.selectAll '.link'
@@ -33,6 +41,9 @@ class Graph
 
     @generateY = ->
       Math.random() * 500
+
+  setText: (text) ->
+    @graphlabel.text text
 
   selectNode: (node, i) ->
     d3.select '#node-' + node.id
@@ -75,6 +86,7 @@ class Graph
     do @draw
 
   clearGraph: ->
+    @graphlabel.text ""
     @force.nodes []
     @force.links []
     @nodes = @force.nodes()
@@ -101,6 +113,7 @@ class Graph
     do @force.stop
 
     @node = @node.data @nodes, (d) ->
+      console.log d.id
       d.id
 
     @node.exit().remove()
@@ -114,7 +127,8 @@ class Graph
       .on 'click', (d) ->
         click(d, self, @)
       .append 'title'
-        .text (d) -> 
+        .text (d) ->
+          console.log "Text!"
           "#{d.id} - #{d.name}"
 
     @link = @link.data @links, (d) ->
@@ -134,8 +148,6 @@ class Graph
           .links @links
           .start()
 
-    d3.selectAll ".fixed"
-      .classed "fixed", false
 
 
 
@@ -391,6 +403,12 @@ class Selecter
             nodes.push other_node
 
         self.graph.drawGraph nodes, links
+        text = "Relations of #{name}"
+        text += ", minimum strengh #{min}" if min > 0
+        self.graph.setText text
+
+        d3.selectAll ".fixed"
+          .classed "fixed", false
         
         # Give selected nodes same colour as in previous visualisation
         self.graph.selectNode root, selection
@@ -401,8 +419,13 @@ class Selecter
 
   
   showPaths: ->
-    from  = +($("#selection-1 .id .value").text())
-    to    = +($("#selection-2 .id .value").text())
+    from        = +($("#selection-1 .id .value").text())
+    from_name   = ($("#selection-1 .name .value").text())
+    
+    to          = +($("#selection-2 .id .value").text())
+    to_name     = ($("#selection-2 .name .value").text())
+
+
     max   = +($("#paths .range .value").text())
     self  = @
 
@@ -435,6 +458,10 @@ class Selecter
 
           # Draw graph
           self.graph.drawGraph nodes, links
+          self.graph.setText "Top #{max} paths between #{from_name} and #{to_name}"
+
+          d3.selectAll ".fixed"
+            .classed "fixed", false
 
         else
           alert "No paths of length less than three."
@@ -461,6 +488,8 @@ class Selecter
     other_id = if text is "" then undefined else +text
     
     self = @
+
+    self.graph.setText "Clustering..."
 
     $.get(
       "/cluster/#{root.id}/"
@@ -507,9 +536,12 @@ class Selecter
           do $("#{css_id} .coefficient").fadeIn
           do $("#{other_css_id} .coefficient").hide
           $("#{css_id} .coefficient .value").text data.coefficient
+          
+          self.graph.setText "#{root.name}'s cluster."
     
         else
           alert "Community could not be found for selected node."
+          self.graph.setText ""
     )
 
 
