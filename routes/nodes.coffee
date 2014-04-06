@@ -231,6 +231,7 @@ getPaths = (q, callback, params) ->
 
 exports.getCluster = (req, res) ->
   id    = +req.params.id
+  console.log "Get cluster for node #{id}"
   hasCluster id, (clustered) ->
 
     if not clustered
@@ -279,7 +280,6 @@ calculateCluster = (rootId, callback) ->
     }
 
     request.post(dbURL).send(message).end ->
-      console.log "Label applied"
       do callback
 
   removeLabel = (id, label, callback) ->
@@ -297,14 +297,12 @@ calculateCluster = (rootId, callback) ->
     }
 
     request.post(dbURL).send(message).end ->
-      console.log "Label removed"
       do callback
 
 
 
 
   getNextNode = (callback) ->
-    console.log "Getting next node"
 
     query = "MATCH (n:Cluster#{rootId})-[r]-(f)
               WHERE not 'Cluster#{rootId}' in LABELS(f)
@@ -338,7 +336,6 @@ calculateCluster = (rootId, callback) ->
 
 
   initialiseCluster = (callback) ->
-    console.log "Init-ing"
 
     # Add cluster label to root
     applyLabel rootId, label, ->
@@ -358,10 +355,8 @@ calculateCluster = (rootId, callback) ->
         params  : params
 
       request.post(dbURL).send(message).end (neo4jRes) ->
-        console.log "Triangle found"
         results = JSON.parse neo4jRes.text
         nodes = results.data[0] or []
-        console.log "nodes: #{nodes}"
         if nodes.length
           count = 0
           continueLoop = ->
@@ -386,11 +381,9 @@ calculateCluster = (rootId, callback) ->
 
   initialiseCluster (initialised) ->
     if initialised
-      console.log "Init-ed"
 
       continueLoop = ->
         if ++i > 10
-          console.log "Done! i = #{i}"
           do callback
           return
 
@@ -399,20 +392,16 @@ calculateCluster = (rootId, callback) ->
           if not id
             do callback
             return
-          console.log "Next node: #{id}"
           applyLabel id, label, ->
             calculateCoefficient rootId, (newCoefficient) ->
-              console.log "Coefficient = #{newCoefficient}"
 
               # Allow cluster to get slightly worse, but stay above 0.5
               compare = if coefficient > 0.51 then coefficient - 0.1 else 0.5001
               if newCoefficient >= compare
-                console.log "Accepted! :)"
                 cluster.push id
                 coefficient = newCoefficient
                 do continueLoop
               else
-                console.log "Rejected :("
                 rejected.push id
                 removeLabel id, label, ->
                   do continueLoop
@@ -424,8 +413,6 @@ calculateCluster = (rootId, callback) ->
 
 
 calculateCoefficient = (id, callback) ->
-  console.log "Calculating coefficient"
-
   label = "Cluster#{id}"
 
   calculateTriples = (links) ->
@@ -455,8 +442,6 @@ calculateCoefficient = (id, callback) ->
       [triangles, links] = results.data[0]
       triangles = triangles / 2
       triples = calculateTriples links
-
-      console.log "Triangles: #{triangles} Triples: #{triples} "
 
       callback triangles / triples
     else
