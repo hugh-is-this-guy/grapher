@@ -406,35 +406,35 @@ calculateCluster = (rootId, callback) ->
 
 
 calculateCoefficient = (id, callback) ->
-    console.log "Calculating coefficient"
+  console.log "Calculating coefficient"
 
-    label = "Cluster#{id}"
+  label = "Cluster#{id}"
 
-    calculateTriples = (links) ->
-      factorial = (n) ->
-        return 0 if n < 0
-        return 1 if n == 0 or n == 1
-        return n * factorial(n - 1)
+  calculateTriples = (links) ->
+    factorial = (n) ->
+      return 0 if n < 0
+      return 1 if n == 0 or n == 1
+      return n * factorial(n - 1)
 
-      triples = (factorial links) / (2 * (factorial( links - 2 )))
+    triples = (factorial links) / (2 * (factorial( links - 2 )))
 
 
-    query = "MATCH p=(a:#{label})--(:#{label})--(:#{label})--(a) 
-              WITH Count(p) AS Triangles
-              MATCH (:#{label})-[r]->(:#{label})
-              RETURN Triangles, Count(r) AS Links"
+  query = "MATCH p=(a:#{label})--(:#{label})--(:#{label})--(a) 
+            WITH Count(p) AS Triangles
+            MATCH (:#{label})-[r]->(:#{label})
+            RETURN Triangles, Count(r) AS Links"
 
-    message = {
-      query : query
-    }
+  message = {
+    query : query
+  }
 
-    request.post(dbURL).send(message).end (neo4jRes) ->
-      results = JSON.parse neo4jRes.text
+  request.post(dbURL).send(message).end (neo4jRes) ->
+    results = JSON.parse neo4jRes.text
 
-      [triangles, links] = results.data[0]
-      triples = calculateTriples links
+    [triangles, links] = results.data[0]
+    triples = calculateTriples links
 
-      callback triangles / triples
+    callback triangles / triples
 
 getCluster = (id, callback) ->
   console.log "Getting cluster"
