@@ -343,66 +343,84 @@ calculateCluster = (rootId, callback) ->
     # Add cluster label to root
     applyLabel rootId, label, ->
       console.log "Label applied to root"
-    
-      # As cluster coefficient can only be calc'ed on clusters 
-      # of three or more, add two nodes to cluster
-      count = 2
-      continueLoop = ->
-        console.log "Getting init node"
-        getNextNode (id) ->
-          if not id
-            do callback
-            return
-          console.log "Got"
-          applyLabel id, label, ->
-            if --count
-              do continueLoop 
-            else
-              do callback
 
-      do continueLoop
+      query = "MATCH p=(n {id: {id} })-[r1]-(a)--(b)-[r2]-(n)
+                WITH r1.weight + r2.weight as cost, a, b
+                RETURN a.id, b.id
+                ORDER BY cost DESC
+                LIMIT 1"
+      
+      params =
+        id: rootId
+
+      message = 
+        query   : query
+        params  : params
+
+      request.post(dbURL).send(message).end (neo4jRes) ->
+        console.log "Triangle found"
+        results = JSON.parse neo4jRes.text
+        nodes = results.data[0] or []
+        console.log "nodes: #{nodes}"
+        if nodes.length
+          count = 0
+          continueLoop = ->
+            applyLabel nodes[count], label, ->
+              if ++count < 2
+                do continueLoop
+              else
+                callback true
+          do continueLoop
+        else
+          callback false
+
 
 
   i = 0
 
-  coefficient = 0.1
+  coefficient = 0.501
   cluster     = [rootId]
   rejected    = []
 
   label = "Cluster#{rootId}"
 
-  initialiseCluster ->
-    console.log "Init-ed"
+  initialiseCluster (initialised) ->
+    if initialised
+      console.log "Init-ed"
 
-    continueLoop = ->
-      if ++i > 10
-        console.log "Done! i = #{i}"
-        do callback
-        return
-
-
-      getNextNode (id) ->
-        if not id
+      continueLoop = ->
+        if ++i > 10
+          console.log "Done! i = #{i}"
           do callback
           return
-        console.log "Next node: #{id}"
-        applyLabel id, label, ->
-          calculateCoefficient rootId, (newCoefficient) ->
-            console.log "Coefficient = #{newCoefficient}"
-            if newCoefficient >= coefficient
-              console.log "Accepted! :)"
-              cluster.push id
-              coefficient = newCoefficient
-              do continueLoop
-            else
-              console.log "Rejected :("
-              rejected.push id
-              removeLabel id, label, ->
-                do continueLoop
 
-            
-  
-    do continueLoop
+
+        getNextNode (id) ->
+          if not id
+            do callback
+            return
+          console.log "Next node: #{id}"
+          applyLabel id, label, ->
+            calculateCoefficient rootId, (newCoefficient) ->
+              console.log "Coefficient = #{newCoefficient}"
+
+              # Allow cluster to get slightly worse, but stay above 0.5
+              compare = if coefficient > 0.51 then coefficient - 0.1 else 0.5001
+              if newCoefficient >= compare
+                console.log "Accepted! :)"
+                cluster.push id
+                coefficient = newCoefficient
+                do continueLoop
+              else
+                console.log "Rejected :("
+                rejected.push id
+                removeLabel id, label, ->
+                  do continueLoop
+
+      do continueLoop
+
+    else 
+     do callback
 
 
 calculateCoefficient = (id, callback) ->
@@ -416,7 +434,9 @@ calculateCoefficient = (id, callback) ->
       return 1 if n == 0 or n == 1
       return n * factorial(n - 1)
 
-    triples = (factorial links) / (2 * (factorial( links - 2 )))
+    (factorial links) / (2 * (factorial( links - 2 )))
+
+
 
 
   query = "MATCH p=(a:#{label})--(:#{label})--(:#{label})--(a) 
@@ -431,10 +451,16 @@ calculateCoefficient = (id, callback) ->
   request.post(dbURL).send(message).end (neo4jRes) ->
     results = JSON.parse neo4jRes.text
 
-    [triangles, links] = results.data[0]
-    triples = calculateTriples links
+    if results.data[0]?
+      [triangles, links] = results.data[0]
+      triangles = triangles / 2
+      triples = calculateTriples links
 
-    callback triangles / triples
+      console.log "Triangles: #{triangles} Triples: #{triples} "
+
+      callback triangles / triples
+    else
+      callback 0
 
 getCluster = (id, callback) ->
   console.log "Getting cluster"

@@ -269,6 +269,8 @@ class Selecter
     @selection = []
     self = @
     do $('.selection, #paths').hide
+    do $('.coefficient').hide
+    do $(".range").hide
 
     $(".relations").click ->
       selection = +($(@).attr("id").split("-")[1])
@@ -281,7 +283,6 @@ class Selecter
     $("#show-paths").click ->
       do self.showPaths
 
-    do $(".range").hide
 
     $(".minlinks").change ->
       selection  = +($(@).attr("id").split("-")[1])
@@ -334,6 +335,8 @@ class Selecter
       $(".minlinks").val(0)
       $(".links .value").text(0)
       do $(".range").hide
+      do $('.coefficient').hide
+      $('.coefficient .value').text ""
 
       @selection = []
     @selected = 2
@@ -351,6 +354,7 @@ class Selecter
     other_css_id = "#selection-" + other_selection
     do $("#{css_id} .links .range").fadeIn
     do $("#{other_css_id} .links .range").hide
+    do $('.coefficient').hide
     do $("#paths .range").hide
     $("#paths .range #numofpaths").val 15
     $("#paths .range .value").text "15"
@@ -403,6 +407,7 @@ class Selecter
     self  = @
 
     do $(".links .range").hide
+    do $('.coefficient').hide
     do $("#paths .range").fadeIn
 
 
@@ -432,12 +437,19 @@ class Selecter
           self.graph.drawGraph nodes, links
 
         else
-          alert "No paths of length less than three :("
+          alert "No paths of length less than three."
 
     $.get "/paths/#{from}/#{to}/#{max}", displayPaths(from, to)
 
   
   showCluster: (selection) ->
+    do $("#{other_css_id} .links .range").hide
+    do $("#paths .range").hide
+    $("#paths .range #numofpaths").val 15
+    $("#paths .range .value").text "15"
+
+    do $(".links .range").hide
+
     css_id = "#selection-" + selection
     id   = +($("#{css_id} .id .value").text())
     name = $("#{css_id} .name .value").text()
@@ -491,9 +503,13 @@ class Selecter
           self.graph.selectNode id, selection
           if other_id?
             self.graph.selectNode other_id, other_selection
+          
+          do $("#{css_id} .coefficient").fadeIn
+          do $("#{other_css_id} .coefficient").hide
+          $("#{css_id} .coefficient .value").text data.coefficient
     
         else
-          alert "Community could not be found for selected node. :("
+          alert "Community could not be found for selected node."
     )
 
 
