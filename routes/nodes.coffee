@@ -477,5 +477,5 @@ getCluster = (id, callback) ->
       response.relationships.push relationship
 
     calculateCoefficient id, (coefficient) ->
-      response.coefficient = coefficient
+      response.coefficient = +coefficient.toFixed 2
       callback response

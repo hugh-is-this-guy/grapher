@@ -113,7 +113,6 @@ class Graph
     do @force.stop
 
     @node = @node.data @nodes, (d) ->
-      console.log d.id
       d.id
 
     @node.exit().remove()
@@ -128,7 +127,6 @@ class Graph
         click(d, self, @)
       .append 'title'
         .text (d) ->
-          console.log "Text!"
           "#{d.id} - #{d.name}"
 
     @link = @link.data @links, (d) ->
@@ -538,6 +536,10 @@ class Selecter
           $("#{css_id} .coefficient .value").text data.coefficient
           
           self.graph.setText "#{root.name}'s cluster."
+          
+          d3.selectAll ".fixed"
+            .classed "fixed", false
+
     
         else
           alert "Community could not be found for selected node."
