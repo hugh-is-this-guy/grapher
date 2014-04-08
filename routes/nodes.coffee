@@ -424,7 +424,6 @@ calculateCoefficient = (id, callback) ->
 
 
 
-
   query = "MATCH p=(a:#{label})--(:#{label})--(:#{label})--(a) 
             WITH Count(p) AS Triangles
             MATCH (:#{label})-[r]->(:#{label})
