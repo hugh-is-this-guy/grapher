@@ -323,6 +323,7 @@ class Selecter
       css_selection_id = '#selection-' + @selected
       $("#{css_selection_id} .id .value").text(node.id)
       $("#{css_selection_id} .name .value").text(node.name)
+      do $("#{css_selection_id} .links .range").hide
       $("#{css_selection_id} .links .value").text(0)
       $("#{css_selection_id} .links .minlinks").val(0)
       do $(css_selection_id).fadeIn
