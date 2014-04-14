@@ -90,8 +90,19 @@ block content
     #about
       h2 About
       p
-        | Hello! Welcome to grapher, my (
+        | Hey! Welcome to grapher, my (
         a(target="_blank" href="mailto:hughbrace@gmail.com") Hugh Brace's
         | ) final year project.
+      p
+        | This web application was developed to allow the exploration and alaysis of large graph datasets. The dataset used represents the number of messages sent between students at the University of California over six months - all data is completely anonymous, and names used are randomly generated and assigned. The dataset is held in a Neo4j database and queried using Cypher. Client- and server-side code is written in CoffeeScript using Node.js. The graph visualisation uses D3's force layout with SVG, and the rest of the web interface uses Bootstrap and JQuery.
+      p
+        | This website is hosted on Heroku (as you can probably tell from the URL).
+      p
+        | To start, type a name (Matthew Macdonald is a pretty good one) into the search box, press enter, and explore away!
+      p
+        | The first request can take a while whilst Heroku wakes up the database, but after that it should be pretty nippy. Also, the clustering can take quite a while (about 30 seconds on a bad day) if the selected node has not been clustered before. Once the cluster has been found for a node, it'll be much quicker on subsequent requests.
+      p
+        | The dissertation written as part of this project will be uploaded somewhere, and linked to from here shortly. Have fun!
+
   
 
