@@ -164,7 +164,7 @@ exports.getPaths = (req, res) ->
                  length(p) as length
             RETURN ids, names, weights, length,
                    reduce(total=0, w in weights | total + w) as cost
-            ORDER BY length, cost / length DESC
+            ORDER BY length, cost DESC
             LIMIT #{max}"
   params =
     from: from
